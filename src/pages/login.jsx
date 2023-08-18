@@ -144,12 +144,12 @@ function Login() {
         <Loader hidden={uiState !== 'loading'} />
         <hr />
         <p>
-          <a href="https://joinmastodon.org/servers" target="_blank">
-            Don't have an account? Create one!
+          <a href="https://login.meow.day/s/R60wuQ" target="_blank">
+            还没有账户？快来注册吧！
           </a>
         </p>
         <p>
-          <Link to="/">Go home</Link>
+          <Link to="/">返回主页</Link>
         </p>
       </form>
     </main>

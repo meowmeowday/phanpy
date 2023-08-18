@@ -33,12 +33,12 @@ function Welcome() {
           <big>
             <b>
               <Link to="/login" class="button">
-                Log in
+                来登录！
               </Link>
             </b>
           </big>
         </p>
-        <p class="desc">A minimalistic opinionated Mastodon web client.</p>
+        <p class="desc">meow.day的站点主页哦~~</p>
       </div>
       <div id="why-container">
         <div class="sections">
