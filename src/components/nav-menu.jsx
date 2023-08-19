@@ -194,15 +194,22 @@ function NavMenu(props) {
               <MenuDivider />
               {currentAccount?.info?.id && (
                 <MenuLink to={`/${instance}/a/${currentAccount.info.id}`}>
-                  <Icon icon="user" size="l" /> <span>个人资料</span>
+                  <Icon icon="user" size="l" /> <span>查看个人资料</span>
                 </MenuLink>
               )}
+              <MenuItem
+                onClick={() => {
+                  window.open('https://meow.day/settings/user', '_blank');
+                }}
+              >
+                <Icon icon="gear" size="l" /> <span>修改个人资料&hellip;</span>
+              </MenuItem>
               <MenuItem
                 onClick={() => {
                   states.showAccounts = true;
                 }}
               >
-                <Icon icon="group" size="l" /> <span>账号设置&hellip;</span>
+                <Icon icon="group" size="l" /> <span>已登录账号&hellip;</span>
               </MenuItem>
               <MenuItem
                 onClick={() => {
@@ -214,7 +221,7 @@ function NavMenu(props) {
               </MenuItem>
               <MenuItem
                 onClick={() => {
-                  window.location.href = 'https://meow.day/settings/user';
+                  states.showSettings = true;
                 }}
               >
                 <Icon icon="gear" size="l" /> <span>其他设置&hellip;</span>
