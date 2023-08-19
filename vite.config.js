@@ -57,7 +57,7 @@ export default defineConfig({
         id: CLIENT_ID,
         name: CLIENT_NAME,
         short_name: CLIENT_NAME,
-        description: 'Minimalistic opinionated Mastodon web client',
+        description: 'Meow.day的站点首页~',
         theme_color: '#ffffff',
         icons: [
           {

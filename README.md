@@ -4,7 +4,7 @@
 Phanpy
 ===
 
-**Minimalistic opinionated Mastodon web client.**
+**Meow.day的站点首页~.**
 </div>
 
 ![Fancy screenshot](readme-assets/fancy-screenshot.jpg)
