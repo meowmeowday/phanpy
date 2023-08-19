@@ -184,8 +184,8 @@ function NavMenu(props) {
           <MenuLink to={`/${instance}/p`}>
             <Icon icon="earth" size="l" /> <span>联邦时间线</span>
           </MenuLink>
-          <MenuLink to="https://meow.day/settings/user" isExternal>
-            <Icon icon="gear" size="l" /> <span>修改个人资料</span>
+          <MenuLink to={`/${instance}/trending`}>
+            <Icon icon="chart" size="l" /> <span>趋势（未完成）</span>
           </MenuLink>
         </section>
         <section>
@@ -194,7 +194,7 @@ function NavMenu(props) {
               <MenuDivider />
               {currentAccount?.info?.id && (
                 <MenuLink to={`/${instance}/a/${currentAccount.info.id}`}>
-                  <Icon icon="user" size="l" /> <span>查看个人资料</span>
+                  <Icon icon="user" size="l" /> <span>个人资料</span>
                 </MenuLink>
               )}
               <MenuItem
@@ -214,7 +214,7 @@ function NavMenu(props) {
               </MenuItem>
               <MenuItem
                 onClick={() => {
-                  states.showSettings = true;
+                  window.location.href = 'https://meow.day/settings/user';
                 }}
               >
                 <Icon icon="gear" size="l" /> <span>其他设置&hellip;</span>
