@@ -133,12 +133,12 @@ function Login() {
         </label>
         {uiState === 'error' && (
           <p class="error">
-            Failed to log in. Please try again or another instance.
+            登录失败，请再试一次
           </p>
         )}
         <div>
           <button class="large" disabled={uiState === 'loading'}>
-            Log in
+            登录
           </button>{' '}
         </div>
         <Loader hidden={uiState !== 'loading'} />

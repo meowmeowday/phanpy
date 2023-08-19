@@ -138,20 +138,20 @@ function NavMenu(props) {
               </>
             )}
           <MenuLink to="/">
-            <Icon icon="home" size="l" /> <span>Home</span>
+            <Icon icon="home" size="l" /> <span>主页</span>
           </MenuLink>
           {authenticated && (
             <>
               {showFollowing && (
                 <MenuLink to="/following">
-                  <Icon icon="following" size="l" /> <span>Following</span>
+                  <Icon icon="following" size="l" /> <span>正在关注</span>
                 </MenuLink>
               )}
               <MenuLink to="/mentions">
-                <Icon icon="at" size="l" /> <span>Mentions</span>
+                <Icon icon="at" size="l" /> <span>提及（未完成）</span>
               </MenuLink>
               <MenuLink to="/notifications">
-                <Icon icon="notification" size="l" /> <span>Notifications</span>
+                <Icon icon="notification" size="l" /> <span>通知</span>
                 {snapStates.notificationsShowNew && (
                   <sup title="New" style={{ opacity: 0.5 }}>
                     {' '}
@@ -161,31 +161,31 @@ function NavMenu(props) {
               </MenuLink>
               <MenuDivider />
               <MenuLink to="/l">
-                <Icon icon="list" size="l" /> <span>Lists</span>
+                <Icon icon="list" size="l" /> <span>列表</span>
               </MenuLink>
               <MenuLink to="/ft">
-                <Icon icon="hashtag" size="l" /> <span>Followed Hashtags</span>
+                <Icon icon="hashtag" size="l" /> <span>关注标签（未完成）</span>
               </MenuLink>
               <MenuLink to="/b">
-                <Icon icon="bookmark" size="l" /> <span>Bookmarks</span>
+                <Icon icon="bookmark" size="l" /> <span>书签</span>
               </MenuLink>
               <MenuLink to="/f">
-                <Icon icon="heart" size="l" /> <span>Favourites</span>
+                <Icon icon="heart" size="l" /> <span>最爱</span>
               </MenuLink>
             </>
           )}
           <MenuDivider />
           <MenuLink to={`/search`}>
-            <Icon icon="search" size="l" /> <span>Search</span>
+            <Icon icon="search" size="l" /> <span>搜索</span>
           </MenuLink>
           <MenuLink to={`/${instance}/p/l`}>
-            <Icon icon="group" size="l" /> <span>Local</span>
+            <Icon icon="group" size="l" /> <span>本地时间线</span>
           </MenuLink>
           <MenuLink to={`/${instance}/p`}>
-            <Icon icon="earth" size="l" /> <span>Federated</span>
+            <Icon icon="earth" size="l" /> <span>联邦时间线</span>
           </MenuLink>
           <MenuLink to={`/${instance}/trending`}>
-            <Icon icon="chart" size="l" /> <span>Trending</span>
+            <Icon icon="chart" size="l" /> <span>趋势（未完成）</span>
           </MenuLink>
         </section>
         <section>
@@ -194,7 +194,7 @@ function NavMenu(props) {
               <MenuDivider />
               {currentAccount?.info?.id && (
                 <MenuLink to={`/${instance}/a/${currentAccount.info.id}`}>
-                  <Icon icon="user" size="l" /> <span>Profile</span>
+                  <Icon icon="user" size="l" /> <span>个人资料</span>
                 </MenuLink>
               )}
               <MenuItem
@@ -202,7 +202,7 @@ function NavMenu(props) {
                   states.showAccounts = true;
                 }}
               >
-                <Icon icon="group" size="l" /> <span>Accounts&hellip;</span>
+                <Icon icon="group" size="l" /> <span>账号设置&hellip;</span>
               </MenuItem>
               <MenuItem
                 onClick={() => {
@@ -210,14 +210,14 @@ function NavMenu(props) {
                 }}
               >
                 <Icon icon="shortcut" size="l" />{' '}
-                <span>Shortcuts Settings&hellip;</span>
+                <span>界面设置&hellip;</span>
               </MenuItem>
               <MenuItem
                 onClick={() => {
                   states.showSettings = true;
                 }}
               >
-                <Icon icon="gear" size="l" /> <span>Settings&hellip;</span>
+                <Icon icon="gear" size="l" /> <span>其他设置&hellip;</span>
               </MenuItem>
             </>
           ) : (
