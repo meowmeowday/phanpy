@@ -184,7 +184,7 @@ function NavMenu(props) {
           <MenuLink to={`/${instance}/p`}>
             <Icon icon="earth" size="l" /> <span>联邦时间线</span>
           </MenuLink>
-          <MenuLink to="https://meow.day/settings/user">
+          <MenuLink to="https://meow.day/settings/user" isExternal>
             <Icon icon="gear" size="l" /> <span>修改个人资料</span>
           </MenuLink>
         </section>
