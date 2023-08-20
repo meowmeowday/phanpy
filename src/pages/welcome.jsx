@@ -33,7 +33,7 @@ function Welcome() {
           <big>
             <b>
               <Link to="/login" class="button">
-                来登录！
+                进来！
               </Link>
             </b>
           </big>

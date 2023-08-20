@@ -149,6 +149,11 @@ function Login() {
           </a>
         </p>
         <p>
+          <a href="https://meow.day/about" target="_blank">
+            查看站点信息
+          </a>
+        </p>
+        <p>
           <Link to="/">返回主页</Link>
         </p>
       </form>
