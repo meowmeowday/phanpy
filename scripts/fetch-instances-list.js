@@ -24,6 +24,3 @@ const names = json.instances.map((instance) => instance.name);
 const path = './src/data/instances.json';
 fs.writeFileSync(path, JSON.stringify(names, null, '\t'), 'utf8');
 
-// Write everything to file, for debugging
-const path2 = './src/data/instances-full.json';
-fs.writeFileSync(path2, JSON.stringify(json, null, '\t'), 'utf8');
