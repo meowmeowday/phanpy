@@ -18,11 +18,6 @@ const results = await fetch(url, {
 
 const json = await results.json();
 
-// Filters
-json.instances = json.instances.filter(
-  (instance) => Number(instance.connections) > 20,
-);
-
 const names = json.instances.map((instance) => instance.name);
 
 // Write to file
