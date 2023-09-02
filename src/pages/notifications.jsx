@@ -2,7 +2,13 @@ import './notifications.css';
 
 import { useIdle } from '@uidotdev/usehooks';
 import { memo } from 'preact/compat';
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'preact/hooks';
 import { useSearchParams } from 'react-router-dom';
 import { useSnapshot } from 'valtio';
 
@@ -193,6 +199,12 @@ function Notifications({ columnMode }) {
   );
 
   const announcementsListRef = useRef();
+
+  useLayoutEffect(() => {
+    if (navigator.clearAppBadge) {
+      navigator.clearAppBadge();
+    }
+  }, []);
 
   useEffect(() => {
     if (notificationID) {
