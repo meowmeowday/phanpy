@@ -185,7 +185,7 @@ function App() {
     }, 100);
     return () => clearTimeout(timer);
   };
-  useEffect(focusDeck, [location]);
+  useEffect(focusDeck, [location, isLoggedIn]);
   const showModal =
     snapStates.showCompose ||
     snapStates.showSettings ||
@@ -201,9 +201,12 @@ function App() {
 
   const { prevLocation } = snapStates;
   const backgroundLocation = useRef(prevLocation || null);
-  const isModalPage =
-    matchPath('/:instance/s/:id', location.pathname) ||
-    matchPath('/s/:id', location.pathname);
+  const isModalPage = useMemo(() => {
+    return (
+      matchPath('/:instance/s/:id', location.pathname) ||
+      matchPath('/s/:id', location.pathname)
+    );
+  }, [location.pathname, matchPath]);
   if (isModalPage) {
     if (!backgroundLocation.current) backgroundLocation.current = prevLocation;
   } else {

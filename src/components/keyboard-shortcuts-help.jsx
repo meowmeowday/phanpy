@@ -1,5 +1,6 @@
 import './keyboard-shortcuts-help.css';
 
+import { memo } from 'preact/compat';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useSnapshot } from 'valtio';
 
@@ -8,7 +9,7 @@ import states from '../utils/states';
 import Icon from './icon';
 import Modal from './modal';
 
-export default function KeyboardShortcutsHelp() {
+export default memo(function KeyboardShortcutsHelp() {
   const snapStates = useSnapshot(states);
 
   function onClose() {
@@ -85,23 +86,6 @@ export default function KeyboardShortcutsHelp() {
                   ),
                 },
                 {
-                  action: 'Search',
-                  keys: <kbd>/</kbd>,
-                },
-                {
-                  action: 'Compose new post',
-                  keys: <kbd>c</kbd>,
-                },
-                {
-                  action: 'Send post',
-                  keys: (
-                    <>
-                      <kbd>Ctrl</kbd> + <kbd>Enter</kbd> or <kbd>⌘</kbd> +{' '}
-                      <kbd>Enter</kbd>
-                    </>
-                  ),
-                },
-                {
                   action: 'Open post details',
                   keys: (
                     <>
@@ -121,6 +105,51 @@ export default function KeyboardShortcutsHelp() {
                     </>
                   ),
                 },
+                {
+                  action: 'Focus column in multi-column mode',
+                  keys: (
+                    <>
+                      <kbd>1</kbd> to <kbd>9</kbd>
+                    </>
+                  ),
+                },
+                {
+                  action: 'Compose new post',
+                  keys: <kbd>c</kbd>,
+                },
+                {
+                  action: 'Send post',
+                  keys: (
+                    <>
+                      <kbd>Ctrl</kbd> + <kbd>Enter</kbd> or <kbd>⌘</kbd> +{' '}
+                      <kbd>Enter</kbd>
+                    </>
+                  ),
+                },
+                {
+                  action: 'Search',
+                  keys: <kbd>/</kbd>,
+                },
+                {
+                  action: 'Reply',
+                  keys: <kbd>r</kbd>,
+                },
+                {
+                  action: 'Favourite',
+                  keys: <kbd>f</kbd>,
+                },
+                {
+                  action: 'Boost',
+                  keys: (
+                    <>
+                      <kbd>Shift</kbd> + <kbd>b</kbd>
+                    </>
+                  ),
+                },
+                {
+                  action: 'Bookmark',
+                  keys: <kbd>d</kbd>,
+                },
               ].map(({ action, keys }) => (
                 <tr key={action}>
                   <th>{action}</th>
@@ -133,4 +162,4 @@ export default function KeyboardShortcutsHelp() {
       </Modal>
     )
   );
-}
+});
