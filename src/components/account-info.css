@@ -148,6 +148,12 @@
   overflow-x: auto;
   justify-content: flex-start;
   position: relative;
+
+  [tabindex='0']:is(:hover, :focus) {
+    color: var(--text-color);
+    cursor: pointer;
+    text-decoration-color: var(--text-insignificant-color);
+  }
 }
 .timeline-start .account-container .stats {
   flex-wrap: wrap;
@@ -157,6 +163,9 @@
   flex-shrink: 0;
   display: flex;
   gap: 0.5em;
+}
+.account-container .stats a:not(.insignificant) {
+  color: inherit;
 }
 .account-container .stats a:hover {
   color: inherit;

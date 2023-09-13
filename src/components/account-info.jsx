@@ -46,6 +46,8 @@ const MUTE_DURATIONS_LABELS = {
   604_800_000: '1 week',
 };
 
+const LIMIT = 80;
+
 function AccountInfo({
   account,
   fetchAccount = () => {},
@@ -53,6 +55,9 @@ function AccountInfo({
   instance,
   authenticated,
 }) {
+  const { masto } = api({
+    instance,
+  });
   const [uiState, setUIState] = useState('default');
   const isString = typeof account === 'string';
   const [info, setInfo] = useState(isString ? null : account);
@@ -113,6 +118,62 @@ function AccountInfo({
   }
 
   const [headerCornerColors, setHeaderCornerColors] = useState([]);
+
+  const followersIterator = useRef();
+  const familiarFollowersCache = useRef([]);
+  async function fetchFollowers(firstLoad) {
+    if (firstLoad || !followersIterator.current) {
+      followersIterator.current = masto.v1.accounts.listFollowers(id, {
+        limit: LIMIT,
+      });
+    }
+    const results = await followersIterator.current.next();
+    const { value } = results;
+    let newValue = [];
+    // On first load, fetch familiar followers, merge to top of results' `value`
+    // Remove dups on every fetch
+    if (firstLoad) {
+      const familiarFollowers = await masto.v1.accounts.fetchFamiliarFollowers(
+        id,
+      );
+      familiarFollowersCache.current = familiarFollowers[0].accounts;
+      newValue = [
+        ...familiarFollowersCache.current,
+        ...value.filter(
+          (account) =>
+            !familiarFollowersCache.current.some(
+              (familiar) => familiar.id === account.id,
+            ),
+        ),
+      ];
+    } else if (value?.length) {
+      newValue = value.filter(
+        (account) =>
+          !familiarFollowersCache.current.some(
+            (familiar) => familiar.id === account.id,
+          ),
+      );
+    }
+
+    return {
+      ...results,
+      value: newValue,
+    };
+  }
+
+  const followingIterator = useRef();
+  async function fetchFollowing(firstLoad) {
+    if (firstLoad || !followingIterator.current) {
+      followingIterator.current = masto.v1.accounts.listFollowing(id, {
+        limit: LIMIT,
+      });
+    }
+    const results = await followingIterator.current.next();
+    return results;
+  }
+
+  const LinkOrDiv = standalone ? 'div' : Link;
+  const accountLink = instance ? `/${instance}/a/${id}` : `/a/${id}`;
 
   return (
     <div
@@ -312,40 +373,56 @@ function AccountInfo({
                 </div>
               )}
               <p class="stats">
-                <div>
+                <LinkOrDiv
+                  tabIndex={0}
+                  to={accountLink}
+                  onClick={() => {
+                    states.showAccount = false;
+                    states.showGenericAccounts = {
+                      heading: 'Followers',
+                      fetchAccounts: fetchFollowers,
+                    };
+                  }}
+                >
                   <span title={followersCount}>
                     {shortenNumber(followersCount)}
                   </span>{' '}
                   Followers
-                </div>
-                <div class="insignificant">
+                </LinkOrDiv>
+                <LinkOrDiv
+                  class="insignificant"
+                  tabIndex={0}
+                  to={accountLink}
+                  onClick={() => {
+                    states.showAccount = false;
+                    states.showGenericAccounts = {
+                      heading: 'Following',
+                      fetchAccounts: fetchFollowing,
+                    };
+                  }}
+                >
                   <span title={followingCount}>
                     {shortenNumber(followingCount)}
                   </span>{' '}
                   Following
                   <br />
-                </div>
-                {standalone ? (
-                  <div class="insignificant">
-                    <span title={statusesCount}>
-                      {shortenNumber(statusesCount)}
-                    </span>{' '}
-                    Posts
-                  </div>
-                ) : (
-                  <Link
-                    class="insignificant"
-                    to={instance ? `/${instance}/a/${id}` : `/a/${id}`}
-                    onClick={() => {
-                      hideAllModals();
-                    }}
-                  >
-                    <span title={statusesCount}>
-                      {shortenNumber(statusesCount)}
-                    </span>{' '}
-                    Posts
-                  </Link>
-                )}
+                </LinkOrDiv>
+                <LinkOrDiv
+                  class="insignificant"
+                  to={accountLink}
+                  onClick={
+                    standalone
+                      ? undefined
+                      : () => {
+                          hideAllModals();
+                        }
+                  }
+                >
+                  <span title={statusesCount}>
+                    {shortenNumber(statusesCount)}
+                  </span>{' '}
+                  Posts
+                </LinkOrDiv>
                 {!!createdAt && (
                   <div class="insignificant">
                     Joined{' '}

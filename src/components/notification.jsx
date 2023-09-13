@@ -1,3 +1,4 @@
+import shortenNumber from '../utils/shorten-number';
 import states from '../utils/states';
 import store from '../utils/store';
 
@@ -126,6 +127,21 @@ function Notification({ notification, instance, reload, isStatic }) {
   const formattedCreatedAt =
     notification.createdAt && new Date(notification.createdAt).toLocaleString();
 
+  const genericAccountsHeading =
+    {
+      'favourite+reblog': 'Boosted/Favourited by…',
+      favourite: 'Favourited by…',
+      reblog: 'Boosted by…',
+      follow: 'Followed by…',
+    }[type] || 'Accounts';
+  const handleOpenGenericAccounts = () => {
+    states.showGenericAccounts = {
+      heading: genericAccountsHeading,
+      accounts: _accounts,
+      showReactions: type === 'favourite+reblog',
+    };
+  };
+
   return (
     <div class={`notification notification-${type}`} tabIndex="0">
       <div
@@ -153,7 +169,12 @@ function Notification({ notification, instance, reload, isStatic }) {
                 <>
                   {_accounts?.length > 1 ? (
                     <>
-                      <b>{_accounts.length} people</b>{' '}
+                      <b tabIndex="0" onClick={handleOpenGenericAccounts}>
+                        <span title={_accounts.length}>
+                          {shortenNumber(_accounts.length)}
+                        </span>{' '}
+                        people
+                      </b>{' '}
                     </>
                   ) : (
                     <>
@@ -186,7 +207,7 @@ function Notification({ notification, instance, reload, isStatic }) {
         )}
         {_accounts?.length > 1 && (
           <p class="avatars-stack">
-            {_accounts.map((account, i) => (
+            {_accounts.slice(0, 50).map((account, i) => (
               <>
                 <a
                   href={account.url}
@@ -202,11 +223,11 @@ function Notification({ notification, instance, reload, isStatic }) {
                     size={
                       _accounts.length <= 10
                         ? 'xxl'
-                        : _accounts.length < 100
+                        : _accounts.length < 20
                         ? 'xl'
-                        : _accounts.length < 1000
+                        : _accounts.length < 30
                         ? 'l'
-                        : _accounts.length < 2000
+                        : _accounts.length < 40
                         ? 'm'
                         : 's' // My god, this person is popular!
                     }
@@ -228,6 +249,13 @@ function Notification({ notification, instance, reload, isStatic }) {
                 </a>{' '}
               </>
             ))}
+            <button
+              type="button"
+              class="small plain"
+              onClick={handleOpenGenericAccounts}
+            >
+              <Icon icon="chevron-down" />
+            </button>
           </p>
         )}
         {_statuses?.length > 1 && (
