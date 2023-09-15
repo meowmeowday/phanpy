@@ -560,8 +560,20 @@
 .status .content blockquote {
   margin-block: min(0.75em, 12px);
   margin-inline: 0;
-  padding: 0 0 0 8px;
-  border-left: 4px solid var(--link-faded-color);
+  padding-block: 0;
+  padding-inline: 12px 0;
+  /* border-left: 4px solid var(--link-faded-color); */
+  position: relative;
+
+  &:before {
+    position: absolute;
+    content: '';
+    width: 3px;
+    background-color: var(--link-faded-color);
+    inset-block: 0;
+    inset-inline-start: 0;
+    border-radius: 9999px;
+  }
 }
 .status .content > :is(ul, ol),
 .status .content > div > :is(ul, ol) {
@@ -642,6 +654,31 @@
   width: auto !important;
   max-width: 100%;
   display: block;
+
+  figure {
+    margin: 0;
+    padding: 0;
+
+    figcaption {
+      margin: -2px 0 0;
+      padding: 0 4px;
+      font-size: 90%;
+      color: var(--text-insignificant-color);
+      overflow: hidden;
+      white-space: normal;
+      display: -webkit-box;
+      display: box;
+      -webkit-box-orient: vertical;
+      box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      line-height: 1.2;
+    }
+  }
+
+  &:hover figure figcaption {
+    color: var(--text-color);
+  }
 }
 .status .media-container.media-eq1 .media {
   display: inline-block;
@@ -779,7 +816,7 @@ body:has(#modal-container .carousel) .status .media img:hover {
   position: relative;
   background-clip: padding-box;
 }
-.status :is(.media-video, .media-audio)[data-formatted-duration] .media-play {
+.status :is(.media-video, .media-audio) .media-play {
   pointer-events: none;
   width: 44px;
   height: 44px;
@@ -797,9 +834,7 @@ body:has(#modal-container .carousel) .status .media img:hover {
   border-radius: 70px;
   transition: all 0.2s ease-in-out;
 }
-.status
-  :is(.media-video, .media-audio)[data-formatted-duration]:hover:not(:active)
-  .media-play {
+.status :is(.media-video, .media-audio):hover:not(:active) .media-play {
   transform: translate(-50%, -50%) scale(1.1);
   background-color: var(--bg-color);
   box-shadow: 0 0 16px var(--drop-shadow-color),
