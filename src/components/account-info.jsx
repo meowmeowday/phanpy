@@ -2,6 +2,7 @@ import './account-info.css';
 
 import { Menu, MenuDivider, MenuItem, SubMenu } from '@szhsin/react-menu';
 import { useEffect, useMemo, useReducer, useRef, useState } from 'preact/hooks';
+import { proxy, useSnapshot } from 'valtio';
 
 import { api } from '../utils/api';
 import enhanceContent from '../utils/enhance-content';
@@ -48,6 +49,10 @@ const MUTE_DURATIONS_LABELS = {
 
 const LIMIT = 80;
 
+const accountInfoStates = proxy({
+  familiarFollowers: [],
+});
+
 function AccountInfo({
   account,
   fetchAccount = () => {},
@@ -61,6 +66,7 @@ function AccountInfo({
   const [uiState, setUIState] = useState('default');
   const isString = typeof account === 'string';
   const [info, setInfo] = useState(isString ? null : account);
+  const snapAccountInfoStates = useSnapshot(accountInfoStates);
 
   const isSelf = useMemo(
     () => account.id === store.session.get('currentAccount'),
@@ -357,94 +363,115 @@ function AccountInfo({
                   __html: enhanceContent(note, { emojis }),
                 }}
               />
-              {fields?.length > 0 && (
-                <div class="profile-metadata">
-                  {fields.map(({ name, value, verifiedAt }, i) => (
-                    <div
-                      class={`profile-field ${
-                        verifiedAt ? 'profile-verified' : ''
-                      }`}
-                      key={name + i}
-                    >
-                      <b>
-                        <EmojiText text={name} emojis={emojis} />{' '}
-                        {!!verifiedAt && <Icon icon="check-circle" size="s" />}
-                      </b>
-                      <p
-                        dangerouslySetInnerHTML={{
-                          __html: enhanceContent(value, { emojis }),
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-              <p class="stats">
-                <LinkOrDiv
-                  tabIndex={0}
-                  to={accountLink}
-                  onClick={() => {
-                    states.showAccount = false;
-                    states.showGenericAccounts = {
-                      heading: 'Followers',
-                      fetchAccounts: fetchFollowers,
-                    };
-                  }}
-                >
-                  <span title={followersCount}>
-                    {shortenNumber(followersCount)}
-                  </span>{' '}
-                  Followers
-                </LinkOrDiv>
-                <LinkOrDiv
-                  class="insignificant"
-                  tabIndex={0}
-                  to={accountLink}
-                  onClick={() => {
-                    states.showAccount = false;
-                    states.showGenericAccounts = {
-                      heading: 'Following',
-                      fetchAccounts: fetchFollowing,
-                    };
-                  }}
-                >
-                  <span title={followingCount}>
-                    {shortenNumber(followingCount)}
-                  </span>{' '}
-                  Following
-                  <br />
-                </LinkOrDiv>
-                <LinkOrDiv
-                  class="insignificant"
-                  to={accountLink}
-                  onClick={
-                    standalone
-                      ? undefined
-                      : () => {
-                          hideAllModals();
-                        }
-                  }
-                >
-                  <span title={statusesCount}>
-                    {shortenNumber(statusesCount)}
-                  </span>{' '}
-                  Posts
-                </LinkOrDiv>
-                {!!createdAt && (
-                  <div class="insignificant">
-                    Joined{' '}
-                    <time datetime={createdAt}>
-                      {niceDateTime(createdAt, {
-                        hideTime: true,
-                      })}
-                    </time>
+              <div class="account-metadata-box">
+                {fields?.length > 0 && (
+                  <div class="profile-metadata">
+                    {fields.map(({ name, value, verifiedAt }, i) => (
+                      <div
+                        class={`profile-field ${
+                          verifiedAt ? 'profile-verified' : ''
+                        }`}
+                        key={name + i}
+                      >
+                        <b>
+                          <EmojiText text={name} emojis={emojis} />{' '}
+                          {!!verifiedAt && (
+                            <Icon icon="check-circle" size="s" />
+                          )}
+                        </b>
+                        <p
+                          dangerouslySetInnerHTML={{
+                            __html: enhanceContent(value, { emojis }),
+                          }}
+                        />
+                      </div>
+                    ))}
                   </div>
                 )}
-              </p>
+                <div class="stats">
+                  <LinkOrDiv
+                    tabIndex={0}
+                    to={accountLink}
+                    onClick={() => {
+                      states.showAccount = false;
+                      states.showGenericAccounts = {
+                        heading: 'Followers',
+                        fetchAccounts: fetchFollowers,
+                      };
+                    }}
+                  >
+                    {!!snapAccountInfoStates.familiarFollowers.length && (
+                      <span class="shazam-container-horizontal">
+                        <span class="shazam-container-inner stats-avatars-bunch">
+                          {(snapAccountInfoStates.familiarFollowers || []).map(
+                            (follower) => (
+                              <Avatar
+                                url={follower.avatarStatic}
+                                size="s"
+                                alt={`${follower.displayName} @${follower.acct}`}
+                                squircle={follower?.bot}
+                              />
+                            ),
+                          )}
+                        </span>
+                      </span>
+                    )}
+                    <span title={followersCount}>
+                      {shortenNumber(followersCount)}
+                    </span>{' '}
+                    Followers
+                  </LinkOrDiv>
+                  <LinkOrDiv
+                    class="insignificant"
+                    tabIndex={0}
+                    to={accountLink}
+                    onClick={() => {
+                      states.showAccount = false;
+                      states.showGenericAccounts = {
+                        heading: 'Following',
+                        fetchAccounts: fetchFollowing,
+                      };
+                    }}
+                  >
+                    <span title={followingCount}>
+                      {shortenNumber(followingCount)}
+                    </span>{' '}
+                    Following
+                    <br />
+                  </LinkOrDiv>
+                  <LinkOrDiv
+                    class="insignificant"
+                    to={accountLink}
+                    onClick={
+                      standalone
+                        ? undefined
+                        : () => {
+                            hideAllModals();
+                          }
+                    }
+                  >
+                    <span title={statusesCount}>
+                      {shortenNumber(statusesCount)}
+                    </span>{' '}
+                    Posts
+                  </LinkOrDiv>
+                  {!!createdAt && (
+                    <div class="insignificant">
+                      Joined{' '}
+                      <time datetime={createdAt}>
+                        {niceDateTime(createdAt, {
+                          hideTime: true,
+                        })}
+                      </time>
+                    </div>
+                  )}
+                </div>
+              </div>
               <RelatedActions
                 info={info}
                 instance={instance}
                 authenticated={authenticated}
+                standalone={standalone}
               />
             </main>
           </>
@@ -454,7 +481,9 @@ function AccountInfo({
   );
 }
 
-function RelatedActions({ info, instance, authenticated }) {
+const FAMILIAR_FOLLOWERS_LIMIT = 3;
+
+function RelatedActions({ info, instance, authenticated, standalone }) {
   if (!info) return null;
   const {
     masto: currentMasto,
@@ -465,7 +494,7 @@ function RelatedActions({ info, instance, authenticated }) {
 
   const [relationshipUIState, setRelationshipUIState] = useState('default');
   const [relationship, setRelationship] = useState(null);
-  const [familiarFollowers, setFamiliarFollowers] = useState([]);
+  const [postingStats, setPostingStats] = useState();
 
   const { id, acct, url, username, locked, lastStatusAt, note, fields } = info;
   const accountID = useRef(id);
@@ -525,13 +554,12 @@ function RelatedActions({ info, instance, authenticated }) {
         accountID.current = currentID;
 
         setRelationshipUIState('loading');
-        setFamiliarFollowers([]);
+        accountInfoStates.familiarFollowers = [];
+        setPostingStats(null);
 
         const fetchRelationships = currentMasto.v1.accounts.fetchRelationships([
           currentID,
         ]);
-        const fetchFamiliarFollowers =
-          currentMasto.v1.accounts.fetchFamiliarFollowers(currentID);
 
         try {
           const relationships = await fetchRelationships;
@@ -542,9 +570,56 @@ function RelatedActions({ info, instance, authenticated }) {
 
             if (!relationship.following) {
               try {
+                const fetchFamiliarFollowers =
+                  currentMasto.v1.accounts.fetchFamiliarFollowers(currentID);
+                const fetchStatuses = currentMasto.v1.accounts
+                  .listStatuses(currentID, {
+                    limit: 20,
+                  })
+                  .next();
+
                 const followers = await fetchFamiliarFollowers;
                 console.log('fetched familiar followers', followers);
-                setFamiliarFollowers(followers[0].accounts.slice(0, 10));
+                accountInfoStates.familiarFollowers =
+                  followers[0].accounts.slice(0, FAMILIAR_FOLLOWERS_LIMIT);
+
+                if (!standalone) {
+                  const { value: statuses } = await fetchStatuses;
+                  console.log('fetched statuses', statuses);
+                  const stats = {
+                    total: statuses.length,
+                    originals: 0,
+                    replies: 0,
+                    boosts: 0,
+                  };
+                  // Categories statuses by type
+                  // - Original posts (not replies to others)
+                  // - Threads (self-replies + 1st original post)
+                  // - Boosts (reblogs)
+                  // - Replies (not-self replies)
+                  statuses.forEach((status) => {
+                    if (status.reblog) {
+                      stats.boosts++;
+                    } else if (
+                      status.inReplyToAccountId !== currentID &&
+                      !!status.inReplyToId
+                    ) {
+                      stats.replies++;
+                    } else {
+                      stats.originals++;
+                    }
+                  });
+
+                  // Count days since last post
+                  stats.daysSinceLastPost = Math.ceil(
+                    (Date.now() -
+                      new Date(statuses[statuses.length - 1].createdAt)) /
+                      86400000,
+                  );
+
+                  console.log('posting stats', stats);
+                  setPostingStats(stats);
+                }
               } catch (e) {
                 console.error(e);
               }
@@ -571,40 +646,60 @@ function RelatedActions({ info, instance, authenticated }) {
   const [showTranslatedBio, setShowTranslatedBio] = useState(false);
   const [showAddRemoveLists, setShowAddRemoveLists] = useState(false);
 
+  const hasPostingStats = postingStats?.total >= 3;
+
   return (
     <>
-      <div
-        class="common-followers shazam-container no-animation"
-        hidden={!familiarFollowers?.length}
-      >
-        <div class="shazam-container-inner">
-          <p>
-            Followed by{' '}
-            <span class="ib">
-              {familiarFollowers.map((follower) => (
-                <a
-                  href={follower.url}
-                  rel="noopener noreferrer"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    states.showAccount = {
-                      account: follower,
-                      instance,
-                    };
-                  }}
-                >
-                  <Avatar
-                    url={follower.avatarStatic}
-                    size="l"
-                    alt={`${follower.displayName} @${follower.acct}`}
-                    squircle={follower?.bot}
+      {hasPostingStats && (
+        <div class="account-metadata-box">
+          {hasPostingStats && (
+            <div class="shazam-container">
+              <div class="shazam-container-inner">
+                <div class="posting-stats">
+                  <div>
+                    {postingStats.daysSinceLastPost < 365
+                      ? `Last ${postingStats.total} posts in the past 
+                    ${postingStats.daysSinceLastPost} day${
+                          postingStats.daysSinceLastPost > 1 ? 's' : ''
+                        }`
+                      : `
+                     Last ${postingStats.total} posts in the past year(s)
+                    `}
+                  </div>
+                  <div
+                    class="posting-stats-bar"
+                    style={{
+                      // [originals | replies | boosts]
+                      '--originals-percentage': `${
+                        (postingStats.originals / postingStats.total) * 100
+                      }%`,
+                      '--replies-percentage': `${
+                        ((postingStats.originals + postingStats.replies) /
+                          postingStats.total) *
+                        100
+                      }%`,
+                    }}
                   />
-                </a>
-              ))}
-            </span>
-          </p>
+                  <div class="posting-stats-legends">
+                    <span class="ib">
+                      <span class="posting-stats-legend-item posting-stats-legend-item-originals" />{' '}
+                      Original
+                    </span>{' '}
+                    <span class="ib">
+                      <span class="posting-stats-legend-item posting-stats-legend-item-replies" />{' '}
+                      Replies
+                    </span>{' '}
+                    <span class="ib">
+                      <span class="posting-stats-legend-item posting-stats-legend-item-boosts" />{' '}
+                      Boosts
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      )}
       <p class="actions">
         <span>
           {followedBy ? (
