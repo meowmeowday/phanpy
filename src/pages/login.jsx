@@ -160,6 +160,16 @@ instance.includes(instanceText))
           </a>
         </p>
         <p>
+          <a href="https://meow.meow.day/#/meow.day/p/l" target="_blank">
+            预览本站的 Local Timeline
+          </a>
+        </p>
+        <p>
+          <a href="https://meow.meow.day/#/meow.day/p" target="_blank">
+            预览本站的 Federated Timeline
+          </a>
+        </p>
+        <p>
           <Link to="/">返回主页</Link>
         </p>
       </form>
