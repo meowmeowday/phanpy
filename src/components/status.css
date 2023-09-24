@@ -93,6 +93,37 @@
   text-decoration: none;
   color: var(--text-color);
 }
+.status-card-link:not(
+    .truncated .status-card-link, /* parent status already truncated */
+    .status-card-link .status-card-link /* nested status cards */
+  ):has(.truncated) {
+  position: relative;
+
+  &:after {
+    content: attr(data-read-more);
+    line-height: 1;
+    display: inline-block;
+    position: absolute;
+    --inset-offset: 16px;
+    inset-block-end: var(--inset-offset);
+    inset-inline-end: var(--inset-offset);
+    color: var(--text-color);
+    background-color: var(--bg-faded-color);
+    border: 1px dashed var(--link-color);
+    box-shadow: 0 0 0 1px var(--bg-color), 0 -5px 10px var(--bg-color),
+      0 -5px 15px var(--bg-color), 0 -5px 20px var(--bg-color);
+    padding: 0.5em 0.75em;
+    border-radius: 10em;
+    font-size: 90%;
+    white-space: nowrap;
+    transition: transform 0.2s ease-out;
+  }
+
+  &:is(:hover, :focus):after {
+    color: var(--link-color);
+    transform: translate(2px, 0);
+  }
+}
 .status-card-link:is(:hover, :focus) .status-card {
   border-color: var(--outline-hover-color);
   box-shadow: inset 0 0 0 4px var(--bg-faded-blur-color);
@@ -131,11 +162,16 @@
   :is(.content, .poll, .media-container) {
   max-height: 80px !important;
 }
-.status-card :is(.content, .poll) {
+.status.large .status-card :is(.content, .poll, .media-container) {
+  max-height: 80vh !important;
+}
+.status-card :is(.content.truncated, .poll, .media-container.truncated) {
   font-size: inherit !important;
   mask-image: linear-gradient(to bottom, #000 80px, transparent);
 }
-.status.small .status-card :is(.content, .poll) {
+.status.small
+  .status-card
+  :is(.content.truncated, .poll, .media-container.truncated) {
   mask-image: linear-gradient(to bottom, #000 40px, transparent);
 }
 .status-card .card {
@@ -829,21 +865,17 @@ body:has(#modal-container .carousel) .status .media img:hover {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  color: var(--text-color);
-  background-color: var(--bg-blur-color);
-  /* backdrop-filter: blur(6px) saturate(3) invert(0.2); */
-  box-shadow: 0 0 16px var(--drop-shadow-color);
+  color: var(--video-fg-color);
+  background-color: var(--video-bg-color);
+  box-shadow: inset 0 0 0 2px var(--video-outline-color);
   display: flex;
   place-content: center;
   place-items: center;
   border-radius: 70px;
-  transition: all 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out;
 }
 .status :is(.media-video, .media-audio):hover:not(:active) .media-play {
   transform: translate(-50%, -50%) scale(1.1);
-  background-color: var(--bg-color);
-  box-shadow: 0 0 16px var(--drop-shadow-color),
-    0 0 8px var(--drop-shadow-color);
 }
 .status :is(.media-video, .media-audio)[data-formatted-duration]:after {
   font-size: 12px;
@@ -852,9 +884,9 @@ body:has(#modal-container .carousel) .status .media img:hover {
   position: absolute;
   bottom: 8px;
   right: 8px;
-  color: var(--bg-color);
-  background-color: var(--text-color);
-  backdrop-filter: blur(6px) saturate(3) invert(0.2);
+  color: var(--video-fg-color);
+  background-color: var(--video-bg-color);
+  border: var(--hairline-width) solid var(--video-outline-color);
   border-radius: 4px;
   padding: 0 4px;
 }
@@ -1097,6 +1129,9 @@ a:focus-visible .card img {
   overflow: hidden;
   display: block;
 }
+.card:visited .meta.domain {
+  color: var(--link-visited-color);
+}
 .card .meta.domain * {
   vertical-align: middle;
 }
@@ -1107,6 +1142,9 @@ a.card {
 a.card:is(:hover, :focus) {
   border: 1px solid var(--link-color);
   box-shadow: 0 0 0 2px var(--link-faded-color);
+}
+a.card:is(:hover, :focus):visited {
+  border-color: var(--link-visited-color);
 }
 .card.video {
   max-width: 320px;
@@ -1494,26 +1532,52 @@ a.card:is(:hover, :focus) {
   text-overflow: ellipsis;
 }
 
-#filtered-status-peek .status-link {
-  border-radius: 16px;
-  border: var(--hairline-width) dashed var(--text-insignificant-color);
-  max-height: 33vh;
-  max-height: 33dvh;
-  overflow: hidden;
-}
-#filtered-status-peek .status-link .status {
-  pointer-events: none;
-  font-size: 90%;
-  max-height: 33vh;
-  max-height: 33dvh;
-  overflow: hidden;
-  mask-image: linear-gradient(black 80%, transparent 95%);
-}
-#filtered-status-peek .status-post-link {
-  float: right;
-  position: sticky;
-  bottom: 8px;
-  right: 8px;
+#filtered-status-peek {
+  .status-link {
+    margin: 8px 0 0;
+    border-radius: 16px;
+    border: var(--hairline-width) solid var(--divider-color);
+    position: relative;
+    max-height: 33vh;
+    max-height: 33dvh;
+    overflow: hidden;
+
+    &.truncated {
+      .status {
+        mask-image: linear-gradient(to bottom, #000 80px, transparent);
+      }
+
+      &:after {
+        content: attr(data-read-more);
+        line-height: 1;
+        display: inline-block;
+        position: absolute;
+        --inset-offset: 16px;
+        inset-block-end: var(--inset-offset);
+        inset-inline-end: var(--inset-offset);
+        color: var(--text-color);
+        background-color: var(--bg-faded-color);
+        border: 1px dashed var(--link-color);
+        box-shadow: 0 0 0 1px var(--bg-color), 0 -5px 10px var(--bg-color),
+          0 -5px 15px var(--bg-color), 0 -5px 20px var(--bg-color);
+        padding: 0.5em 0.75em;
+        border-radius: 10em;
+        font-size: 90%;
+        white-space: nowrap;
+        transition: transform 0.2s ease-out;
+      }
+
+      &:is(:hover, :focus):after {
+        color: var(--link-color);
+        transform: translate(2px, 0);
+      }
+    }
+
+    .status {
+      pointer-events: none;
+      font-size: 90%;
+    }
+  }
 }
 
 /* REACTIONS */

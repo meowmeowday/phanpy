@@ -1,6 +1,7 @@
 import shortenNumber from '../utils/shorten-number';
 import states from '../utils/states';
 import store from '../utils/store';
+import useTruncated from '../utils/useTruncated';
 
 import Avatar from './avatar';
 import FollowRequestButtons from './follow-request-buttons';
@@ -266,37 +267,56 @@ function Notification({ notification, instance, reload, isStatic }) {
           <ul class="notification-group-statuses">
             {_statuses.map((status) => (
               <li key={status.id}>
-                <Link
+                <TruncatedLink
                   class={`status-link status-type-${type}`}
                   to={
                     instance ? `/${instance}/s/${status.id}` : `/s/${status.id}`
                   }
                 >
                   <Status status={status} size="s" />
-                </Link>
+                </TruncatedLink>
               </li>
             ))}
           </ul>
         )}
         {status && (!_statuses?.length || _statuses?.length <= 1) && (
-          <Link
+          <TruncatedLink
             class={`status-link status-type-${type}`}
             to={
               instance
                 ? `/${instance}/s/${actualStatusID}`
                 : `/s/${actualStatusID}`
             }
+            onContextMenu={(e) => {
+              const post = e.target.querySelector('.status');
+              if (post) {
+                // Fire a custom event to open the context menu
+                if (e.metaKey) return;
+                e.preventDefault();
+                post.dispatchEvent(
+                  new MouseEvent('contextmenu', {
+                    clientX: e.clientX,
+                    clientY: e.clientY,
+                  }),
+                );
+              }
+            }}
           >
             {isStatic ? (
               <Status status={actualStatus} size="s" />
             ) : (
               <Status statusID={actualStatusID} size="s" />
             )}
-          </Link>
+          </TruncatedLink>
         )}
       </div>
     </div>
   );
+}
+
+function TruncatedLink(props) {
+  const ref = useTruncated();
+  return <Link {...props} data-read-more="Read more →" ref={ref} />;
 }
 
 export default Notification;

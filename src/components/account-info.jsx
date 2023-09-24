@@ -73,6 +73,11 @@ function AccountInfo({
     [account?.id],
   );
 
+  const sameCurrentInstance = useMemo(
+    () => instance === api().instance,
+    [instance],
+  );
+
   useEffect(() => {
     if (!isString) {
       setInfo(account);
@@ -115,6 +120,7 @@ function AccountInfo({
     url,
     username,
     memorial,
+    moved,
   } = info || {};
   let headerIsAvatar = false;
   let { header, headerStatic } = info || {};
@@ -140,6 +146,7 @@ function AccountInfo({
     }
     const results = await followersIterator.current.next();
     if (isSelf) return results;
+    if (!sameCurrentInstance) return results;
 
     const { value } = results;
     let newValue = [];
@@ -235,6 +242,22 @@ function AccountInfo({
       ) : (
         info && (
           <>
+            {!!moved && (
+              <div class="account-moved">
+                <p>
+                  <b>{displayName}</b> has indicated that their new account is
+                  now:
+                </p>
+                <AccountBlock
+                  account={moved}
+                  instance={instance}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    states.showAccount = moved;
+                  }}
+                />
+              </div>
+            )}
             {header && !/missing\.png$/.test(header) && (
               <img
                 src={header}
@@ -496,7 +519,8 @@ function RelatedActions({ info, instance, authenticated, standalone }) {
   const [relationship, setRelationship] = useState(null);
   const [postingStats, setPostingStats] = useState();
 
-  const { id, acct, url, username, locked, lastStatusAt, note, fields } = info;
+  const { id, acct, url, username, locked, lastStatusAt, note, fields, moved } =
+    info;
   const accountID = useRef(id);
 
   const {
@@ -552,6 +576,8 @@ function RelatedActions({ info, instance, authenticated, standalone }) {
         }
 
         accountID.current = currentID;
+
+        if (moved) return;
 
         setRelationshipUIState('loading');
         accountInfoStates.familiarFollowers = [];
@@ -662,7 +688,16 @@ function RelatedActions({ info, instance, authenticated, standalone }) {
         >
           <div class="shazam-container">
             <div class="shazam-container-inner">
-              <div class="posting-stats">
+              <div
+                class="posting-stats"
+                title={`${Math.round(
+                  (postingStats.originals / postingStats.total) * 100,
+                )}% original posts, ${Math.round(
+                  (postingStats.replies / postingStats.total) * 100,
+                )}% replies, ${Math.round(
+                  (postingStats.boosts / postingStats.total) * 100,
+                )}% boosts`}
+              >
                 <div>
                   {postingStats.daysSinceLastPost < 365
                     ? `Last ${postingStats.total} posts in the past 
