@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { useSnapshot } from 'valtio';
 
 import logo from '../assets/logo.svg';
+
 import Icon from '../components/icon';
 import Link from '../components/link';
 import RelativeTime from '../components/relative-time';
@@ -34,7 +35,7 @@ function Settings({ onClose }) {
   const currentTextSize = store.local.get('textSize') || DEFAULT_TEXT_SIZE;
 
   const [prefs, setPrefs] = useState(store.account.get('preferences') || {});
-  const { masto, authenticated } = api();
+  const { masto, authenticated, instance } = api();
   // Get preferences every time Settings is opened
   // NOTE: Disabled for now because I don't expect this to change often. Also for some reason, the /api/v1/preferences endpoint is cached for a while and return old prefs if refresh immediately after changing them.
   // useEffect(() => {
@@ -178,7 +179,8 @@ function Settings({ onClose }) {
                 <li>
                   <div>
                     <label for="posting-privacy-field">
-                      Default visibility
+                      Default visibility{' '}
+                      <Icon icon="cloud" alt="Synced" class="synced-icon" />
                     </label>
                   </div>
                   <div>
@@ -217,6 +219,19 @@ function Settings({ onClose }) {
                 </li>
               </ul>
             </section>
+            <p class="section-postnote">
+              <Icon icon="cloud" alt="Synced" class="synced-icon" />{' '}
+              <small>
+                Synced to your instance server's settings.{' '}
+                <a
+                  href={`https://${instance}/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Go to your instance ({instance}) for more settings.
+                </a>
+              </small>
+            </p>
           </>
         )}
         <h3>Experiments</h3>
@@ -339,6 +354,7 @@ function Settings({ onClose }) {
                     <a
                       href="https://github.com/thedaviddelta/lingva-translate"
                       target="_blank"
+                      rel="noopener noreferrer"
                     >
                       Lingva Translate
                     </a>
@@ -435,6 +451,7 @@ function Settings({ onClose }) {
               <a
                 href="https://hachyderm.io/@phanpy"
                 // target="_blank"
+                rel="noopener noreferrer"
                 onClick={(e) => {
                   e.preventDefault();
                   states.showAccount = 'phanpy@hachyderm.io';
@@ -443,13 +460,18 @@ function Settings({ onClose }) {
                 @phanpy
               </a>
               <br />
-              <a href="https://github.com/cheeaun/phanpy" target="_blank">
+              <a
+                href="https://github.com/cheeaun/phanpy"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Built
               </a>{' '}
               by{' '}
               <a
                 href="https://mastodon.social/@cheeaun"
                 // target="_blank"
+                rel="noopener noreferrer"
                 onClick={(e) => {
                   e.preventDefault();
                   states.showAccount = 'cheeaun@mastodon.social';
@@ -461,8 +483,25 @@ function Settings({ onClose }) {
           </div>
           <p>
             <a
+              href="https://github.com/sponsors/cheeaun"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Sponsor
+            </a>{' '}
+            &middot;{' '}
+            <a
+              href="https://www.buymeacoffee.com/cheeaun"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Donate
+            </a>{' '}
+            &middot;{' '}
+            <a
               href="https://github.com/cheeaun/phanpy/blob/main/PRIVACY.MD"
               target="_blank"
+              rel="noopener noreferrer"
             >
               Privacy Policy
             </a>
@@ -477,6 +516,7 @@ function Settings({ onClose }) {
                   <a
                     href={`https://github.com/cheeaun/phanpy/commit/${__COMMIT_HASH__}`}
                     target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <code>{__COMMIT_HASH__}</code>
                   </a>

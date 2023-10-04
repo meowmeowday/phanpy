@@ -121,6 +121,7 @@ function AccountInfo({
     username,
     memorial,
     moved,
+    roles,
   } = info || {};
   let headerIsAvatar = false;
   let { header, headerStatic } = info || {};
@@ -133,6 +134,12 @@ function AccountInfo({
       }
     }
   }
+
+  const accountInstance = useMemo(() => {
+    if (!url) return null;
+    const domain = new URL(url).hostname;
+    return domain;
+  }, [url]);
 
   const [headerCornerColors, setHeaderCornerColors] = useState([]);
 
@@ -209,7 +216,11 @@ function AccountInfo({
         <div class="ui-state">
           <p>Unable to load account.</p>
           <p>
-            <a href={account} target="_blank">
+            <a
+              href={isString ? account : url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Go to account page <Icon icon="external" />
             </a>
           </p>
@@ -377,8 +388,20 @@ function AccountInfo({
                   <Icon icon="group" /> Group
                 </span>
               )}
+              {roles?.map((role) => (
+                <span class="tag">
+                  {role.name}
+                  {!!accountInstance && (
+                    <>
+                      {' '}
+                      <span class="more-insignificant">{accountInstance}</span>
+                    </>
+                  )}
+                </span>
+              ))}
               <div
                 class="note"
+                dir="auto"
                 onClick={handleContentLinks({
                   instance,
                 })}
@@ -395,6 +418,7 @@ function AccountInfo({
                           verifiedAt ? 'profile-verified' : ''
                         }`}
                         key={name + i}
+                        dir="auto"
                       >
                         <b>
                           <EmojiText text={name} emojis={emojis} />{' '}
@@ -884,6 +908,8 @@ function RelatedActions({ info, instance, authenticated, standalone }) {
                           setRelationship(newRelationship);
                           setRelationshipUIState('default');
                           showToast(`Unmuted @${username}`);
+                          states.reloadGenericAccounts.id = 'mute';
+                          states.reloadGenericAccounts.counter++;
                         } catch (e) {
                           console.error(e);
                           setRelationshipUIState('error');
@@ -935,6 +961,8 @@ function RelatedActions({ info, instance, authenticated, standalone }) {
                                 showToast(
                                   `Muted @${username} for ${MUTE_DURATIONS_LABELS[duration]}`,
                                 );
+                                states.reloadGenericAccounts.id = 'mute';
+                                states.reloadGenericAccounts.counter++;
                               } catch (e) {
                                 console.error(e);
                                 setRelationshipUIState('error');
@@ -985,6 +1013,8 @@ function RelatedActions({ info, instance, authenticated, standalone }) {
                           setRelationshipUIState('default');
                           showToast(`Blocked @${username}`);
                         }
+                        states.reloadGenericAccounts.id = 'block';
+                        states.reloadGenericAccounts.counter++;
                       } catch (e) {
                         console.error(e);
                         setRelationshipUIState('error');
