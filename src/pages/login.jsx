@@ -18,7 +18,7 @@ function Login() {
   const [searchParams] = useSearchParams();
   const instance = searchParams.get('instance');
   const [instanceText, setInstanceText] = useState(
-    instance || cachedInstanceURL?.toLowerCase() || '',
+    instance || cachedInstanceURL?.toLowerCase() || 'meow.day',
   );
 
   const [instancesList, setInstancesList] = useState([]);
