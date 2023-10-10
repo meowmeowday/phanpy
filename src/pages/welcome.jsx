@@ -41,7 +41,7 @@ function Welcome() {
         </p>
         <p class="desc">meow.day, 一个轻量级的ActivityPub服务实例Web端</p>
         <p>
-          <a href="https://login.meow.day/s/R60wuQ" target="_blank">
+          <a href="https://forms.meow.day/s/clnjw0kwr0001oa01te98qd1n" target="_blank">
             还没有账户？快来注册吧！
           </a>
         </p>
