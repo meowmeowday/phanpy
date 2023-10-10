@@ -40,23 +40,22 @@ function Welcome() {
           </big>
         </p>
         <p class="desc">meow.day, 一个轻量级的ActivityPub服务实例Web端</p>
-      </div>
-      <hr />
-      <p>
+        <p>
           <a href="https://login.meow.day/s/R60wuQ" target="_blank">
             还没有账户？快来注册吧！
           </a>
-      </p>
-      <p>
+        </p>
+        <p>
           <a href="https://meow.day/about" target="_blank">
             查看站点信息
           </a>
-      </p>
-      <p>
+        </p>
+        <p>
           <a href="https://meow.meow.day/#/meow.day/p" target="_blank">
             预览本站
           </a>
-      </p>
+        </p>
+      </div>
       <hr />
       <div id="why-container">
         <div class="sections">
