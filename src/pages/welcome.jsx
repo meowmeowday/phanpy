@@ -46,45 +46,16 @@ function Welcome() {
           <a href="https://login.meow.day/s/R60wuQ" target="_blank">
             还没有账户？快来注册吧！
           </a>
-        </p>
-        <p>
+      </p>
+      <p>
           <a href="https://meow.day/about" target="_blank">
             查看站点信息
           </a>
-        </p>
-        <p>
-          <a href="https://meow.meow.day/#/meow.day/p/l" target="_blank">
-            预览本站的 Local Timeline
-          </a>
-        </p>
-        <p>
-          <a href="https://meow.meow.day/#/meow.day/p" target="_blank">
-            预览本站的 Federated Timeline
-          </a>
-        </p>
+      </p>
       <p>
-        <a href="https://github.com/cheeaun/phanpy" target="_blank">
-          Built
-        </a>{' '}
-        by{' '}
-        <a
-          href="https://mastodon.social/@cheeaun"
-          target="_blank"
-          onClick={(e) => {
-            e.preventDefault();
-            states.showAccount = 'cheeaun@mastodon.social';
-          }}
-        >
-          @cheeaun
-        </a>
-        .{' '}
-        <a
-          href="https://github.com/cheeaun/phanpy/blob/main/PRIVACY.MD"
-          target="_blank"
-        >
-          Privacy Policy
-        </a>
-        .
+          <a href="https://meow.meow.day/#/meow.day/p" target="_blank">
+            预览本站
+          </a>
       </p>
       <hr />
       <div id="why-container">
@@ -144,6 +115,31 @@ function Welcome() {
           </section>
         </div>
       </div>
+      <hr />
+      <p>
+        <a href="https://github.com/cheeaun/phanpy" target="_blank">
+          Built
+        </a>{' '}
+        by{' '}
+        <a
+          href="https://mastodon.social/@cheeaun"
+          target="_blank"
+          onClick={(e) => {
+            e.preventDefault();
+            states.showAccount = 'cheeaun@mastodon.social';
+          }}
+        >
+          @cheeaun
+        </a>
+        .{' '}
+        <a
+          href="https://github.com/cheeaun/phanpy/blob/main/PRIVACY.MD"
+          target="_blank"
+        >
+          Privacy Policy
+        </a>
+        .
+      </p>
     </main>
   );
 }

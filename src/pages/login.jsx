@@ -178,13 +178,8 @@ function Login() {
           </a>
         </p>
         <p>
-          <a href="https://meow.meow.day/#/meow.day/p/l" target="_blank">
-            预览本站的 Local Timeline
-          </a>
-        </p>
-        <p>
           <a href="https://meow.meow.day/#/meow.day/p" target="_blank">
-            预览本站的 Federated Timeline
+            预览本站
           </a>
         </p>
         <p>
