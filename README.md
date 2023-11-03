@@ -22,6 +22,7 @@ This is an alternative web client for [Mastodon](https://joinmastodon.org/).
   - may see new cool stuff sooner
   - may break more often
   - may be fixed much faster too
+  
 
 🐘 Follow [@phanpy on Mastodon](https://hachyderm.io/@phanpy) for updates ✨
 
