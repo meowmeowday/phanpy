@@ -135,8 +135,12 @@ export default memo(function KeyboardShortcutsHelp() {
                   keys: <kbd>r</kbd>,
                 },
                 {
-                  action: 'Favourite',
-                  keys: <kbd>f</kbd>,
+                  action: 'Like (favourite)',
+                  keys: (
+                    <>
+                      <kbd>l</kbd> or <kbd>f</kbd>
+                    </>
+                  ),
                 },
                 {
                   action: 'Boost',
@@ -149,6 +153,14 @@ export default memo(function KeyboardShortcutsHelp() {
                 {
                   action: 'Bookmark',
                   keys: <kbd>d</kbd>,
+                },
+                {
+                  action: 'Toggle Cloak mode',
+                  keys: (
+                    <>
+                      <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>k</kbd>
+                    </>
+                  ),
                 },
               ].map(({ action, keys }) => (
                 <tr key={action}>

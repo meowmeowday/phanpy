@@ -512,7 +512,7 @@ function Status({
               )}{' '}
               {favouritesCount > 0 && (
                 <span>
-                  <Icon icon="heart" alt="Favourites" size="s" />{' '}
+                  <Icon icon="heart" alt="Likes" size="s" />{' '}
                   <span>{shortenNumber(favouritesCount)}</span>
                 </span>
               )}
@@ -550,7 +550,7 @@ function Status({
         <MenuItem onClick={() => setShowReactions(true)}>
           <Icon icon="react" />
           <span>
-            Boosted/Favourited by<span class="more-insignificant">…</span>
+            Boosted/Liked by<span class="more-insignificant">…</span>
           </span>
         </MenuItem>
       )}
@@ -579,7 +579,11 @@ function Status({
                 try {
                   const done = await confirmBoostStatus();
                   if (!isSizeLarge && done) {
-                    showToast(reblogged ? 'Unboosted' : 'Boosted');
+                    showToast(
+                      reblogged
+                        ? `Unboosted @${username || acct}'s post`
+                        : `Boosted @${username || acct}'s post`,
+                    );
                   }
                 } catch (e) {}
               }}
@@ -597,7 +601,11 @@ function Status({
                 try {
                   favouriteStatus();
                   if (!isSizeLarge) {
-                    showToast(favourited ? 'Unfavourited' : 'Favourited');
+                    showToast(
+                      favourited
+                        ? `Unliked @${username || acct}'s post`
+                        : `Liked @${username || acct}'s post`,
+                    );
                   }
                 } catch (e) {}
               }}
@@ -608,7 +616,7 @@ function Status({
                   color: favourited && 'var(--favourite-color)',
                 }}
               />
-              <span>{favourited ? 'Unfavourite' : 'Favourite'}</span>
+              <span>{favourited ? 'Unlike' : 'Like'}</span>
             </MenuItem>
           </div>
           <div class="menu-horizontal">
@@ -621,7 +629,11 @@ function Status({
                 try {
                   bookmarkStatus();
                   if (!isSizeLarge) {
-                    showToast(bookmarked ? 'Unbookmarked' : 'Bookmarked');
+                    showToast(
+                      bookmarked
+                        ? `Unbookmarked @${username || acct}'s post`
+                        : `Bookmarked @${username || acct}'s post`,
+                    );
                   }
                 } catch (e) {}
               }}
@@ -782,17 +794,17 @@ function Status({
 
   const contextMenuRef = useRef();
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
-  const [contextMenuAnchorPoint, setContextMenuAnchorPoint] = useState({
-    x: 0,
-    y: 0,
-  });
+  const [contextMenuProps, setContextMenuProps] = useState({});
+
+  const showContextMenu = !isSizeLarge && !previewMode && !_deleted && !quoted;
+
   const isIOS =
     window.ontouchstart !== undefined &&
     /iPad|iPhone|iPod/.test(navigator.userAgent);
   // Only iOS/iPadOS browsers don't support contextmenu
   // Some comments report iPadOS might support contextmenu if a mouse is connected
   const bindLongPressContext = useLongPress(
-    isIOS
+    isIOS && showContextMenu
       ? (e) => {
           if (e.pointerType === 'mouse') return;
           // There's 'pen' too, but not sure if contextmenu event would trigger from a pen
@@ -802,9 +814,12 @@ function Status({
           const link = e.target.closest('a');
           if (link && /^https?:\/\//.test(link.getAttribute('href'))) return;
           e.preventDefault();
-          setContextMenuAnchorPoint({
-            x: clientX,
-            y: clientY,
+          setContextMenuProps({
+            anchorPoint: {
+              x: clientX,
+              y: clientY,
+            },
+            direction: 'right',
           });
           setIsContextMenuOpen(true);
         }
@@ -817,19 +832,21 @@ function Status({
     },
   );
 
-  const showContextMenu = size !== 'l' && !previewMode && !_deleted && !quoted;
-
   const hotkeysEnabled = !readOnly && !previewMode;
   const rRef = useHotkeys('r', replyStatus, {
     enabled: hotkeysEnabled,
   });
   const fRef = useHotkeys(
-    'f',
+    'f, l',
     () => {
       try {
         favouriteStatus();
         if (!isSizeLarge) {
-          showToast(favourited ? 'Unfavourited' : 'Favourited');
+          showToast(
+            favourited
+              ? `Unliked @${username || acct}'s post`
+              : `Liked @${username || acct}'s post`,
+          );
         }
       } catch (e) {}
     },
@@ -843,7 +860,11 @@ function Status({
       try {
         bookmarkStatus();
         if (!isSizeLarge) {
-          showToast(bookmarked ? 'Unbookmarked' : 'Bookmarked');
+          showToast(
+            bookmarked
+              ? `Unbookmarked @${username || acct}'s post`
+              : `Bookmarked @${username || acct}'s post`,
+          );
         }
       } catch (e) {}
     },
@@ -858,7 +879,11 @@ function Status({
         try {
           const done = await confirmBoostStatus();
           if (!isSizeLarge && done) {
-            showToast(reblogged ? 'Unboosted' : 'Boosted');
+            showToast(
+              reblogged
+                ? `Unboosted @${username || acct}'s post`
+                : `Boosted @${username || acct}'s post`,
+            );
           }
         } catch (e) {}
       })();
@@ -972,9 +997,12 @@ function Status({
         const link = e.target.closest('a');
         if (link && /^https?:\/\//.test(link.getAttribute('href'))) return;
         e.preventDefault();
-        setContextMenuAnchorPoint({
-          x: e.clientX,
-          y: e.clientY,
+        setContextMenuProps({
+          anchorPoint: {
+            x: e.clientX,
+            y: e.clientY,
+          },
+          direction: 'right',
         });
         setIsContextMenuOpen(true);
       }}
@@ -984,8 +1012,7 @@ function Status({
         <ControlledMenu
           ref={contextMenuRef}
           state={isContextMenuOpen ? 'open' : undefined}
-          anchorPoint={contextMenuAnchorPoint}
-          direction="right"
+          {...contextMenuProps}
           onClose={(e) => {
             setIsContextMenuOpen(false);
             // statusRef.current?.focus?.();
@@ -1062,49 +1089,87 @@ function Status({
             (_deleted ? (
               <span class="status-deleted-tag">Deleted</span>
             ) : url && !previewMode && !quoted ? (
-              <Menu
-                instanceRef={menuInstanceRef}
-                portal={{
-                  target: document.body,
+              <Link
+                to={instance ? `/${instance}/s/${id}` : `/s/${id}`}
+                onClick={(e) => {
+                  if (
+                    e.metaKey ||
+                    e.ctrlKey ||
+                    e.shiftKey ||
+                    e.altKey ||
+                    e.which === 2
+                  ) {
+                    return;
+                  }
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onStatusLinkClick?.(e, status);
+                  setContextMenuProps({
+                    anchorRef: {
+                      current: e.currentTarget,
+                    },
+                    align: 'end',
+                    direction: 'bottom',
+                    gap: 4,
+                  });
+                  setIsContextMenuOpen(true);
                 }}
-                containerProps={{
-                  style: {
-                    // Higher than the backdrop
-                    zIndex: 1001,
-                  },
-                  onClick: (e) => {
-                    if (e.target === e.currentTarget)
-                      menuInstanceRef.current?.closeMenu?.();
-                  },
-                }}
-                align="end"
-                gap={4}
-                overflow="auto"
-                viewScroll="close"
-                boundingBoxPadding="8 8 8 8"
-                unmountOnClose
-                menuButton={({ open }) => (
-                  <Link
-                    to={instance ? `/${instance}/s/${id}` : `/s/${id}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onStatusLinkClick?.(e, status);
-                    }}
-                    class={`time ${open ? 'is-open' : ''}`}
-                  >
-                    <Icon
-                      icon={visibilityIconsMap[visibility]}
-                      alt={visibilityText[visibility]}
-                      size="s"
-                    />{' '}
-                    <RelativeTime datetime={createdAtDate} format="micro" />
-                  </Link>
-                )}
+                class={`time ${
+                  isContextMenuOpen && contextMenuProps?.anchorRef
+                    ? 'is-open'
+                    : ''
+                }`}
               >
-                {StatusMenuItems}
-              </Menu>
+                <Icon
+                  icon={visibilityIconsMap[visibility]}
+                  alt={visibilityText[visibility]}
+                  size="s"
+                />{' '}
+                <RelativeTime datetime={createdAtDate} format="micro" />
+              </Link>
             ) : (
+              // <Menu
+              //   instanceRef={menuInstanceRef}
+              //   portal={{
+              //     target: document.body,
+              //   }}
+              //   containerProps={{
+              //     style: {
+              //       // Higher than the backdrop
+              //       zIndex: 1001,
+              //     },
+              //     onClick: (e) => {
+              //       if (e.target === e.currentTarget)
+              //         menuInstanceRef.current?.closeMenu?.();
+              //     },
+              //   }}
+              //   align="end"
+              //   gap={4}
+              //   overflow="auto"
+              //   viewScroll="close"
+              //   boundingBoxPadding="8 8 8 8"
+              //   unmountOnClose
+              //   menuButton={({ open }) => (
+              //     <Link
+              //       to={instance ? `/${instance}/s/${id}` : `/s/${id}`}
+              //       onClick={(e) => {
+              //         e.preventDefault();
+              //         e.stopPropagation();
+              //         onStatusLinkClick?.(e, status);
+              //       }}
+              //       class={`time ${open ? 'is-open' : ''}`}
+              //     >
+              //       <Icon
+              //         icon={visibilityIconsMap[visibility]}
+              //         alt={visibilityText[visibility]}
+              //         size="s"
+              //       />{' '}
+              //       <RelativeTime datetime={createdAtDate} format="micro" />
+              //     </Link>
+              //   )}
+              // >
+              //   {StatusMenuItems}
+              // </Menu>
               <span class="time">
                 <Icon
                   icon={visibilityIconsMap[visibility]}
@@ -1402,6 +1467,7 @@ function Status({
                       {' '}
                       &bull; <Icon icon="pencil" alt="Edited" />{' '}
                       <time
+                        tabIndex="0"
                         class="edited"
                         datetime={editedAtDate.toISOString()}
                         onClick={() => {
@@ -1473,8 +1539,8 @@ function Status({
               <div class="action has-count">
                 <StatusButton
                   checked={favourited}
-                  title={['Favourite', 'Unfavourite']}
-                  alt={['Favourite', 'Favourited']}
+                  title={['Like', 'Unlike']}
+                  alt={['Like', 'Liked']}
                   class="favourite-button"
                   icon="heart"
                   count={favouritesCount}
@@ -1521,10 +1587,11 @@ function Status({
       </div>
       {!!showEdited && (
         <Modal
+          class="light"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowEdited(false);
-              statusRef.current?.focus();
+              // statusRef.current?.focus();
             }
           }}
         >
@@ -1907,7 +1974,7 @@ function ReactionsModal({ statusID, instance, onClose }) {
         </button>
       )}
       <header>
-        <h2>Boosted/Favourited by…</h2>
+        <h2>Boosted/Liked by…</h2>
       </header>
       <main>
         {accounts.length > 0 ? (

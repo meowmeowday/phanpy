@@ -35,8 +35,9 @@ function NavMenu(props) {
   // User may choose pin or not to pin Following
   // If user doesn't pin Following, we show it in the menu
   const showFollowing =
-    (snapStates.settings.shortcutsColumnsMode ||
-      snapStates.settings.shortcutsViewMode === 'multi-column') &&
+    (snapStates.settings.shortcutsViewMode === 'multi-column' ||
+      (!snapStates.settings.shortcutsViewMode &&
+        snapStates.settings.shortcutsColumnsMode)) &&
     !snapStates.shortcuts.find((pin) => pin.type === 'following');
 
   const bindLongPress = useLongPress(
@@ -192,7 +193,7 @@ function NavMenu(props) {
                 <Icon icon="bookmark" size="l" /> <span>书签</span>
               </MenuLink>
               <MenuLink to="/f">
-                <Icon icon="heart" size="l" /> <span>最爱</span>
+                <Icon icon="heart" size="l" /> <span>Likes</span>
               </MenuLink>
             </>
           )}
@@ -256,6 +257,7 @@ function NavMenu(props) {
                 <Icon icon="block" size="l" />
                 Blocked users&hellip;
               </MenuItem>
+              <MenuDivider className="divider-grow" />
               <MenuItem
                 onClick={() => {
                   states.showKeyboardShortcutsHelp = true;
@@ -270,7 +272,7 @@ function NavMenu(props) {
                 }}
               >
                 <Icon icon="shortcut" size="l" />{' '}
-                <span>界面设置&hellip;</span>
+                <span>Shortcuts / Columns&hellip;</span>
               </MenuItem>
               <MenuItem
                 onClick={() => {

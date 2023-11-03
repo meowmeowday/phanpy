@@ -17,12 +17,14 @@ import db from '../utils/db';
 import emojifyText from '../utils/emojify-text';
 import localeMatch from '../utils/locale-match';
 import openCompose from '../utils/open-compose';
+import shortenNumber from '../utils/shorten-number';
 import states, { saveStatus } from '../utils/states';
 import store from '../utils/store';
 import {
   getCurrentAccount,
   getCurrentAccountNS,
   getCurrentInstance,
+  getCurrentInstanceConfiguration,
 } from '../utils/store-utils';
 import supports from '../utils/supports';
 import useInterval from '../utils/useInterval';
@@ -119,21 +121,30 @@ function Compose({
   const currentAccount = getCurrentAccount();
   const currentAccountInfo = currentAccount.info;
 
-  const { configuration } = getCurrentInstance();
+  const configuration = getCurrentInstanceConfiguration();
   console.log('⚙️ Configuration', configuration);
 
   const {
-    statuses: { maxCharacters, maxMediaAttachments, charactersReservedPerUrl },
+    statuses: {
+      maxCharacters,
+      maxMediaAttachments,
+      charactersReservedPerUrl,
+    } = {},
     mediaAttachments: {
-      supportedMimeTypes,
+      supportedMimeTypes = [],
       imageSizeLimit,
       imageMatrixLimit,
       videoSizeLimit,
       videoMatrixLimit,
       videoFrameRateLimit,
-    },
-    polls: { maxOptions, maxCharactersPerOption, maxExpiration, minExpiration },
-  } = configuration;
+    } = {},
+    polls: {
+      maxOptions,
+      maxCharactersPerOption,
+      maxExpiration,
+      minExpiration,
+    } = {},
+  } = configuration || {};
 
   const textareaRef = useRef();
   const spoilerTextRef = useRef();
@@ -377,6 +388,13 @@ function Compose({
       enableOnFormTags: true,
       // Use keyup because Esc keydown will close the confirm dialog on Safari
       keyup: true,
+      ignoreEventWhen: (e) => {
+        const modals = document.querySelectorAll('#modal-container > *');
+        const hasModal = !!modals;
+        const hasOnlyComposer =
+          modals.length === 1 && modals[0].querySelector('#compose-container');
+        return hasModal && !hasOnlyComposer;
+      },
     },
   );
 
@@ -503,6 +521,34 @@ function Compose({
   }, [mediaAttachments]);
 
   const [showEmoji2Picker, setShowEmoji2Picker] = useState(false);
+
+  const [topSupportedLanguages, restSupportedLanguages] = useMemo(() => {
+    const topLanguages = [];
+    const restLanguages = [];
+    const { contentTranslationHideLanguages = [] } = states.settings;
+    supportedLanguages.forEach((l) => {
+      const [code] = l;
+      if (
+        code === language ||
+        code === prevLanguage.current ||
+        code === DEFAULT_LANG ||
+        contentTranslationHideLanguages.includes(code)
+      ) {
+        topLanguages.push(l);
+      } else {
+        restLanguages.push(l);
+      }
+    });
+    topLanguages.sort(([codeA, commonA], [codeB, commonB]) => {
+      if (codeA === language) return -1;
+      if (codeB === language) return 1;
+      return commonA.localeCompare(commonB);
+    });
+    restLanguages.sort(([codeA, commonA], [codeB, commonB]) =>
+      commonA.localeCompare(commonB),
+    );
+    return [topLanguages, restLanguages];
+  }, [language]);
 
   return (
     <div id="compose-container-outer">
@@ -1108,32 +1154,17 @@ function Compose({
                 }}
                 disabled={uiState === 'loading'}
               >
-                {supportedLanguages
-                  .sort(([codeA, commonA], [codeB, commonB]) => {
-                    const { contentTranslationHideLanguages = [] } =
-                      states.settings;
-                    // Sort codes that same as language, prevLanguage, DEFAULT_LANGUAGE and all the ones in states.settings.contentTranslationHideLanguages, to the top
-                    if (
-                      codeA === language ||
-                      codeA === prevLanguage ||
-                      codeA === DEFAULT_LANG ||
-                      contentTranslationHideLanguages?.includes(codeA)
-                    )
-                      return -1;
-                    if (
-                      codeB === language ||
-                      codeB === prevLanguage ||
-                      codeB === DEFAULT_LANG ||
-                      contentTranslationHideLanguages?.includes(codeB)
-                    )
-                      return 1;
-                    return commonA.localeCompare(commonB);
-                  })
-                  .map(([code, common, native]) => (
-                    <option value={code}>
-                      {common} ({native})
-                    </option>
-                  ))}
+                {topSupportedLanguages.map(([code, common, native]) => (
+                  <option value={code} key={code}>
+                    {common} ({native})
+                  </option>
+                ))}
+                <hr />
+                {restSupportedLanguages.map(([code, common, native]) => (
+                  <option value={code} key={code}>
+                    {common} ({native})
+                  </option>
+                ))}
               </select>
             </label>{' '}
             <button
@@ -1200,7 +1231,7 @@ const Textarea = forwardRef((props, ref) => {
   const [text, setText] = useState(ref.current?.value || '');
   const { maxCharacters, performSearch = () => {}, ...textareaProps } = props;
   const snapStates = useSnapshot(states);
-  const charCount = snapStates.composerCharacterCount;
+  // const charCount = snapStates.composerCharacterCount;
 
   const customEmojis = useRef();
   useEffect(() => {
@@ -1289,6 +1320,7 @@ const Textarea = forwardRef((props, ref) => {
                   username,
                   acct,
                   emojis,
+                  history,
                 } = result;
                 const displayNameWithEmoji = emojifyText(displayName, emojis);
                 // const item = menuItem.cloneNode();
@@ -1307,9 +1339,18 @@ const Textarea = forwardRef((props, ref) => {
                     </li>
                   `;
                 } else {
+                  const total = history?.reduce?.(
+                    (acc, cur) => acc + +cur.uses,
+                    0,
+                  );
                   html += `
                     <li role="option" data-value="${encodeHTML(name)}">
-                      <span>#<b>${encodeHTML(name)}</b></span>
+                      <span class="grow">#<b>${encodeHTML(name)}</b></span>
+                      ${
+                        total
+                          ? `<span class="count">${shortenNumber(total)}</span>`
+                          : ''
+                      }
                     </li>
                   `;
                 }
@@ -1432,7 +1473,7 @@ const Textarea = forwardRef((props, ref) => {
         style={{
           width: '100%',
           height: '4em',
-          '--text-weight': (1 + charCount / 140).toFixed(1) || 1,
+          // '--text-weight': (1 + charCount / 140).toFixed(1) || 1,
         }}
       />
     </text-expander>

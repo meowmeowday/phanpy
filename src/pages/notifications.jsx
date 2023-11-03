@@ -1,10 +1,12 @@
 import './notifications.css';
 
-import { useIdle } from '@uidotdev/usehooks';
+import { Fragment } from 'preact';
 import { memo } from 'preact/compat';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { InView } from 'react-intersection-observer';
 import { useSearchParams } from 'react-router-dom';
 import { useSnapshot } from 'valtio';
+import { subscribeKey } from 'valtio/utils';
 
 import AccountBlock from '../components/account-block';
 import FollowRequestButtons from '../components/follow-request-buttons';
@@ -22,6 +24,7 @@ import { getRegistration } from '../utils/push-notifications';
 import shortenNumber from '../utils/shorten-number';
 import states, { saveStatus } from '../utils/states';
 import { getCurrentInstance } from '../utils/store-utils';
+import usePageVisibility from '../utils/usePageVisibility';
 import useScroll from '../utils/useScroll';
 import useTitle from '../utils/useTitle';
 
@@ -166,39 +169,63 @@ function Notifications({ columnMode }) {
     }
   }, [reachStart]);
 
-  useEffect(() => {
-    if (nearReachEnd && showMore) {
-      loadNotifications();
-    }
-  }, [nearReachEnd, showMore]);
+  // useEffect(() => {
+  //   if (nearReachEnd && showMore) {
+  //     loadNotifications();
+  //   }
+  // }, [nearReachEnd, showMore]);
 
-  const idle = useIdle(5000);
-  console.debug('🧘‍♀️ IDLE', idle);
-  const loadUpdates = useCallback(() => {
-    console.log('✨ Load updates', {
-      autoRefresh: snapStates.settings.autoRefresh,
-      scrollTop: scrollableRef.current?.scrollTop === 0,
-      inBackground: inBackground(),
-      notificationsShowNew: snapStates.notificationsShowNew,
-      uiState,
-    });
-    if (
-      snapStates.settings.autoRefresh &&
-      scrollableRef.current?.scrollTop === 0 &&
-      idle &&
-      !inBackground() &&
-      snapStates.notificationsShowNew &&
-      uiState !== 'loading'
-    ) {
-      loadNotifications(true);
+  const [showNew, setShowNew] = useState(false);
+
+  const loadUpdates = useCallback(
+    ({ disableIdleCheck = false } = {}) => {
+      console.log('✨ Load updates', {
+        autoRefresh: snapStates.settings.autoRefresh,
+        scrollTop: scrollableRef.current?.scrollTop,
+        inBackground: inBackground(),
+        disableIdleCheck,
+        notificationsShowNew: snapStates.notificationsShowNew,
+        uiState,
+      });
+      if (
+        snapStates.settings.autoRefresh &&
+        scrollableRef.current?.scrollTop < 16 &&
+        (disableIdleCheck || window.__IDLE__) &&
+        !inBackground() &&
+        snapStates.notificationsShowNew &&
+        uiState !== 'loading'
+      ) {
+        loadNotifications(true);
+      } else {
+        setShowNew(snapStates.notificationsShowNew);
+      }
+    },
+    [snapStates.notificationsShowNew, snapStates.settings.autoRefresh, uiState],
+  );
+  // useEffect(loadUpdates, [snapStates.notificationsShowNew]);
+
+  const lastHiddenTime = useRef();
+  usePageVisibility((visible) => {
+    let unsub;
+    if (visible) {
+      const timeDiff = Date.now() - lastHiddenTime.current;
+      if (!lastHiddenTime.current || timeDiff > 1000 * 60) {
+        loadUpdates({
+          disableIdleCheck: true,
+        });
+      } else {
+        lastHiddenTime.current = Date.now();
+      }
+      unsub = subscribeKey(states, 'notificationsShowNew', (v) => {
+        if (v) {
+          loadUpdates();
+        }
+      });
     }
-  }, [
-    idle,
-    snapStates.notificationsShowNew,
-    snapStates.settings.autoRefresh,
-    uiState,
-  ]);
-  useEffect(loadUpdates, [snapStates.notificationsShowNew]);
+    return () => {
+      unsub?.();
+    };
+  });
 
   const todayDate = new Date();
   const yesterdayDate = new Date(todayDate - 24 * 60 * 60 * 1000);
@@ -220,23 +247,23 @@ function Notifications({ columnMode }) {
     }
   }, [notificationID, notificationAccessToken]);
 
-  useEffect(() => {
-    if (uiState === 'default') {
-      (async () => {
-        try {
-          const registration = await getRegistration();
-          if (registration?.getNotifications) {
-            const notifications = await registration.getNotifications();
-            console.log('🔔 Push notifications', notifications);
-            // Close all notifications?
-            // notifications.forEach((notification) => {
-            //   notification.close();
-            // });
-          }
-        } catch (e) {}
-      })();
-    }
-  }, [uiState]);
+  // useEffect(() => {
+  //   if (uiState === 'default') {
+  //     (async () => {
+  //       try {
+  //         const registration = await getRegistration();
+  //         if (registration?.getNotifications) {
+  //           const notifications = await registration.getNotifications();
+  //           console.log('🔔 Push notifications', notifications);
+  //           // Close all notifications?
+  //           // notifications.forEach((notification) => {
+  //           //   notification.close();
+  //           // });
+  //         }
+  //       } catch (e) {}
+  //     })();
+  //   }
+  // }, [uiState]);
 
   return (
     <div
@@ -267,7 +294,7 @@ function Notifications({ columnMode }) {
               {/* <Loader hidden={uiState !== 'loading'} /> */}
             </div>
           </div>
-          {snapStates.notificationsShowNew && uiState !== 'loading' && (
+          {showNew && uiState !== 'loading' && (
             <button
               class="updates-button shiny-pill"
               type="button"
@@ -412,18 +439,14 @@ function Notifications({ columnMode }) {
                         hideTime: true,
                       });
                 return (
-                  <>
+                  <Fragment key={notification.id}>
                     {differentDay && <h2 class="timeline-header">{heading}</h2>}
                     <Notification
                       instance={instance}
                       notification={notification}
                       key={notification.id}
-                      reload={() => {
-                        loadNotifications(true);
-                        loadFollowRequests();
-                      }}
                     />
-                  </>
+                  </Fragment>
                 );
               })}
           </>
@@ -458,15 +481,27 @@ function Notifications({ columnMode }) {
           </>
         )}
         {showMore && (
-          <button
-            type="button"
-            class="plain block"
-            disabled={uiState === 'loading'}
-            onClick={() => loadNotifications()}
-            style={{ marginBlockEnd: '6em' }}
+          <InView
+            onChange={(inView) => {
+              if (inView) {
+                loadNotifications();
+              }
+            }}
           >
-            {uiState === 'loading' ? <Loader abrupt /> : <>Show more&hellip;</>}
-          </button>
+            <button
+              type="button"
+              class="plain block"
+              disabled={uiState === 'loading'}
+              onClick={() => loadNotifications()}
+              style={{ marginBlockEnd: '6em' }}
+            >
+              {uiState === 'loading' ? (
+                <Loader abrupt />
+              ) : (
+                <>Show more&hellip;</>
+              )}
+            </button>
+          </InView>
         )}
       </div>
     </div>

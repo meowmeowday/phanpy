@@ -1,5 +1,6 @@
 import './shortcuts-settings.css';
 
+import { useAutoAnimate } from '@formkit/auto-animate/preact';
 import {
   compressToEncodedURIComponent,
   decompressFromEncodedURIComponent,
@@ -21,7 +22,7 @@ import Icon from './icon';
 import MenuConfirm from './menu-confirm';
 import Modal from './modal';
 
-const SHORTCUTS_LIMIT = 9;
+export const SHORTCUTS_LIMIT = 9;
 
 const TYPES = [
   'following',
@@ -45,7 +46,7 @@ const TYPE_TEXT = {
   search: 'Search',
   'account-statuses': 'Account',
   bookmarks: 'Bookmarks',
-  favourites: 'Favourites',
+  favourites: 'Likes',
   hashtag: 'Hashtag',
   trending: 'Trending',
   mentions: 'Mentions',
@@ -102,6 +103,11 @@ const TYPE_PARAMS = {
       type: 'text',
       placeholder: 'e.g. PixelArt (Max 5, space-separated)',
       pattern: '[^#]+',
+    },
+    {
+      text: 'Media only',
+      name: 'media',
+      type: 'checkbox',
     },
     {
       text: 'Instance',
@@ -177,7 +183,7 @@ export const SHORTCUTS_META = {
   },
   favourites: {
     id: 'favourites',
-    title: 'Favourites',
+    title: 'Likes',
     path: '/f',
     icon: 'heart',
   },
@@ -185,8 +191,10 @@ export const SHORTCUTS_META = {
     id: 'hashtag',
     title: ({ hashtag }) => hashtag,
     subtitle: ({ instance }) => instance || api().instance,
-    path: ({ hashtag, instance }) =>
-      `${instance ? `/${instance}` : ''}/t/${hashtag.split(/\s+/).join('+')}`,
+    path: ({ hashtag, instance, media }) =>
+      `${instance ? `/${instance}` : ''}/t/${hashtag.split(/\s+/).join('+')}${
+        media ? '?media=1' : ''
+      }`,
     icon: 'hashtag',
   },
 };
@@ -201,10 +209,13 @@ function ShortcutsSettings({ onClose }) {
   const [showForm, setShowForm] = useState(false);
   const [showImportExport, setShowImportExport] = useState(false);
 
+  const [shortcutsListParent] = useAutoAnimate();
+
   useEffect(() => {
     (async () => {
       try {
         const lists = await masto.v1.lists.list();
+        lists.sort((a, b) => a.title.localeCompare(b.title));
         setLists(lists);
       } catch (e) {
         console.error(e);
@@ -249,36 +260,36 @@ function ShortcutsSettings({ onClose }) {
         </h2>
       </header>
       <main>
-        <p>
-          Specify a list of shortcuts that'll appear&nbsp;as:
-          <div class="shortcuts-view-mode">
-            {[
-              {
-                value: 'float-button',
-                label: 'Floating button',
-                imgURL: floatingButtonUrl,
-              },
-              {
-                value: 'tab-menu-bar',
-                label: 'Tab/Menu bar',
-                imgURL: tabMenuBarUrl,
-              },
-              {
-                value: 'multi-column',
-                label: 'Multi-column',
-                imgURL: multiColumnUrl,
-              },
-            ].map(({ value, label, imgURL }) => (
-              <label>
+        <p>Specify a list of shortcuts that'll appear&nbsp;as:</p>
+        <div class="shortcuts-view-mode">
+          {[
+            {
+              value: 'float-button',
+              label: 'Floating button',
+              imgURL: floatingButtonUrl,
+            },
+            {
+              value: 'tab-menu-bar',
+              label: 'Tab/Menu bar',
+              imgURL: tabMenuBarUrl,
+            },
+            {
+              value: 'multi-column',
+              label: 'Multi-column',
+              imgURL: multiColumnUrl,
+            },
+          ].map(({ value, label, imgURL }) => {
+            const checked =
+              snapStates.settings.shortcutsViewMode === value ||
+              (value === 'float-button' &&
+                !snapStates.settings.shortcutsViewMode);
+            return (
+              <label key={value} class={checked ? 'checked' : ''}>
                 <input
                   type="radio"
                   name="shortcuts-view-mode"
                   value={value}
-                  checked={
-                    snapStates.settings.shortcutsViewMode === value ||
-                    (value === 'float-button' &&
-                      !snapStates.settings.shortcutsViewMode)
-                  }
+                  checked={checked}
                   onChange={(e) => {
                     states.settings.shortcutsViewMode = e.target.value;
                   }}
@@ -286,40 +297,14 @@ function ShortcutsSettings({ onClose }) {
                 <img src={imgURL} alt="" width="80" height="58" />{' '}
                 <span>{label}</span>
               </label>
-            ))}
-          </div>
-          {/* <select
-              value={snapStates.settings.shortcutsViewMode || 'float-button'}
-              onChange={(e) => {
-                states.settings.shortcutsViewMode = e.target.value;
-              }}
-            >
-              <option value="float-button">Floating button</option>
-              <option value="multi-column">Multi-column</option>
-              <option value="tab-menu-bar">Tab/Menu bar </option>
-            </select> */}
-        </p>
-        {/* <p>
-          <details>
-            <summary class="insignificant">
-              Experimental Multi-column mode
-            </summary>
-            <label>
-              <input
-                type="checkbox"
-                checked={snapStates.settings.shortcutsColumnsMode}
-                onChange={(e) => {
-                  states.settings.shortcutsColumnsMode = e.target.checked;
-                }}
-              />{' '}
-              Show shortcuts in multiple columns instead of the floating button.
-            </label>
-          </details>
-        </p> */}
+            );
+          })}
+        </div>
         {shortcuts.length > 0 ? (
-          <ol class="shortcuts-list">
+          <ol class="shortcuts-list" ref={shortcutsListParent}>
             {shortcuts.filter(Boolean).map((shortcut, i) => {
-              const key = i + Object.values(shortcut);
+              // const key = i + Object.values(shortcut);
+              const key = Object.values(shortcut).join('-');
               const { type } = shortcut;
               if (!SHORTCUTS_META[type]) return null;
               let { icon, title, subtitle } = SHORTCUTS_META[type];

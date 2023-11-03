@@ -126,7 +126,7 @@ function AccountInfo({
   const { masto } = api({
     instance,
   });
-  const { masto: currentMasto } = api();
+  const { masto: currentMasto, instance: currentInstance } = api();
   const [uiState, setUIState] = useState('default');
   const isString = typeof account === 'string';
   const [info, setInfo] = useState(isString ? null : account);
@@ -137,8 +137,8 @@ function AccountInfo({
   );
 
   const sameCurrentInstance = useMemo(
-    () => instance === api().instance,
-    [instance],
+    () => instance === currentInstance,
+    [instance, currentInstance],
   );
 
   useEffect(() => {
@@ -314,6 +314,7 @@ function AccountInfo({
 
   return (
     <div
+      tabIndex="-1"
       class={`account-container  ${uiState === 'loading' ? 'skeleton' : ''}`}
       style={{
         '--header-color-1': headerCornerColors[0],
@@ -343,20 +344,39 @@ function AccountInfo({
           </header>
           <main>
             <div class="note">
-              <p>████████ ███████</p>
-              <p>███████████████ ███████████████</p>
+              <p>███████ ████ ████</p>
+              <p>████ ████████ ██████ █████████ ████ ██</p>
             </div>
-            <div class="stats">
-              <div>
-                <span>██</span> Followers
+            <div class="account-metadata-box">
+              <div class="profile-metadata">
+                <div class="profile-field">
+                  <b class="more-insignificant">███</b>
+                  <p>██████</p>
+                </div>
+                <div class="profile-field">
+                  <b class="more-insignificant">████</b>
+                  <p>███████████</p>
+                </div>
               </div>
-              <div>
-                <span>██</span> Following
+              <div class="stats">
+                <div>
+                  <span>██</span> Followers
+                </div>
+                <div>
+                  <span>██</span> Following
+                </div>
+                <div>
+                  <span>██</span> Posts
+                </div>
               </div>
-              <div>
-                <span>██</span> Posts
-              </div>
-              <div>Joined ██</div>
+            </div>
+            <div class="actions">
+              <span />
+              <span class="buttons">
+                <button type="button" title="More" class="plain" disabled>
+                  <Icon icon="more" size="l" alt="More" />
+                </button>
+              </span>
             </div>
           </main>
         </>
@@ -379,7 +399,7 @@ function AccountInfo({
                 />
               </div>
             )}
-            {header && !/missing\.png$/.test(header) && (
+            {!!header && !/missing\.png$/.test(header) && (
               <img
                 src={header}
                 alt=""
@@ -486,7 +506,8 @@ function AccountInfo({
                 internal={!standalone}
               />
             </header>
-            <main tabIndex="-1">
+            <div class="faux-header-bg" aria-hidden="true" />
+            <main>
               {!!memorial && <span class="tag">In Memoriam</span>}
               {!!bot && (
                 <span class="tag">
@@ -513,7 +534,7 @@ function AccountInfo({
                 class="note"
                 dir="auto"
                 onClick={handleContentLinks({
-                  instance,
+                  instance: currentInstance,
                 })}
                 dangerouslySetInnerHTML={{
                   __html: enhanceContent(note, { emojis }),
@@ -550,11 +571,13 @@ function AccountInfo({
                     tabIndex={0}
                     to={accountLink}
                     onClick={() => {
-                      states.showAccount = false;
-                      states.showGenericAccounts = {
-                        heading: 'Followers',
-                        fetchAccounts: fetchFollowers,
-                      };
+                      // states.showAccount = false;
+                      setTimeout(() => {
+                        states.showGenericAccounts = {
+                          heading: 'Followers',
+                          fetchAccounts: fetchFollowers,
+                        };
+                      }, 0);
                     }}
                   >
                     {!!familiarFollowers.length && (
@@ -581,11 +604,13 @@ function AccountInfo({
                     tabIndex={0}
                     to={accountLink}
                     onClick={() => {
-                      states.showAccount = false;
-                      states.showGenericAccounts = {
-                        heading: 'Following',
-                        fetchAccounts: fetchFollowing,
-                      };
+                      // states.showAccount = false;
+                      setTimeout(() => {
+                        states.showGenericAccounts = {
+                          heading: 'Following',
+                          fetchAccounts: fetchFollowing,
+                        };
+                      }, 0);
                     }}
                   >
                     <span title={followingCount}>
@@ -597,13 +622,13 @@ function AccountInfo({
                   <LinkOrDiv
                     class="insignificant"
                     to={accountLink}
-                    onClick={
-                      standalone
-                        ? undefined
-                        : () => {
-                            hideAllModals();
-                          }
-                    }
+                    // onClick={
+                    //   standalone
+                    //     ? undefined
+                    //     : () => {
+                    //         hideAllModals();
+                    //       }
+                    // }
                   >
                     <span title={statusesCount}>
                       {shortenNumber(statusesCount)}
@@ -626,9 +651,9 @@ function AccountInfo({
                 <LinkOrDiv
                   to={accountLink}
                   class="account-metadata-box"
-                  onClick={() => {
-                    states.showAccount = false;
-                  }}
+                  // onClick={() => {
+                  //   states.showAccount = false;
+                  // }}
                 >
                   <div class="shazam-container">
                     <div class="shazam-container-inner">
@@ -725,13 +750,15 @@ function AccountInfo({
                   </div>
                 </div>
               </div>
+            </main>
+            <footer>
               <RelatedActions
                 info={info}
                 instance={instance}
                 authenticated={authenticated}
                 onRelationshipChange={onRelationshipChange}
               />
-            </main>
+            </footer>
           </>
         )
       )}
@@ -1362,6 +1389,7 @@ function AddRemoveListsSheet({ accountID, onClose }) {
     (async () => {
       try {
         const lists = await masto.v1.lists.list();
+        lists.sort((a, b) => a.title.localeCompare(b.title));
         const listsContainingAccount = await masto.v1.accounts
           .$select(accountID)
           .lists.list();
@@ -1511,7 +1539,7 @@ function PrivateNoteSheet({
         </button>
       )}
       <header>
-        <b>Private note for @{account?.acct}</b>
+        <b>Private note about @{account?.username || account?.acct}</b>
       </header>
       <main>
         <form

@@ -1,4 +1,3 @@
-import { useIdle } from '@uidotdev/usehooks';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { InView } from 'react-intersection-observer';
@@ -14,6 +13,8 @@ import useScroll from '../utils/useScroll';
 
 import Icon from './icon';
 import Link from './link';
+import Media from './media';
+import MediaPost from './media-post';
 import NavMenu from './nav-menu';
 import Status from './status';
 
@@ -40,6 +41,7 @@ function Timeline({
   timelineStart,
   allowFilters,
   refresh,
+  view,
 }) {
   const snapStates = useSnapshot(states);
   const [items, setItems] = useState([]);
@@ -51,6 +53,7 @@ function Timeline({
 
   console.debug('RENDER Timeline', id, refresh);
 
+  const allowGrouping = view !== 'media';
   const loadItems = useDebouncedCallback(
     (firstLoad) => {
       setShowNew(false);
@@ -60,10 +63,12 @@ function Timeline({
         try {
           let { done, value } = await fetchItems(firstLoad);
           if (Array.isArray(value)) {
-            if (boostsCarousel) {
-              value = groupBoosts(value);
+            if (allowGrouping) {
+              if (boostsCarousel) {
+                value = groupBoosts(value);
+              }
+              value = groupContext(value);
             }
-            value = groupContext(value);
             console.log(value);
             if (firstLoad) {
               setItems(value);
@@ -211,27 +216,38 @@ function Timeline({
     }
   }, [nearReachEnd, showMore]);
 
-  const idle = useIdle(5000);
-  console.debug('🧘‍♀️ IDLE', idle);
+  const prevView = useRef(view);
+  useEffect(() => {
+    if (prevView.current !== view) {
+      prevView.current = view;
+      setItems([]);
+    }
+  }, [view]);
+
   const loadOrCheckUpdates = useCallback(
-    async ({ disableHoverCheck = false } = {}) => {
-      console.log('✨ Load or check updates', {
+    async ({ disableIdleCheck = false } = {}) => {
+      const noPointers = scrollableRef.current
+        ? getComputedStyle(scrollableRef.current).pointerEvents === 'none'
+        : false;
+      console.log('✨ Load or check updates', id, {
         autoRefresh: snapStates.settings.autoRefresh,
         scrollTop: scrollableRef.current.scrollTop,
-        disableHoverCheck,
-        idle,
+        disableIdleCheck,
+        idle: window.__IDLE__,
         inBackground: inBackground(),
+        noPointers,
       });
       if (
         snapStates.settings.autoRefresh &&
-        scrollableRef.current.scrollTop === 0 &&
-        (disableHoverCheck || idle) &&
-        !inBackground()
+        scrollableRef.current.scrollTop < 16 &&
+        (disableIdleCheck || window.__IDLE__) &&
+        !inBackground() &&
+        !noPointers
       ) {
-        console.log('✨ Load updates', snapStates.settings.autoRefresh);
+        console.log('✨ Load updates', id, snapStates.settings.autoRefresh);
         loadItems(true);
       } else {
-        console.log('✨ Check updates', snapStates.settings.autoRefresh);
+        console.log('✨ Check updates', id, snapStates.settings.autoRefresh);
         const hasUpdate = await checkForUpdates();
         if (hasUpdate) {
           console.log('✨ Has new updates', id);
@@ -239,7 +255,7 @@ function Timeline({
         }
       }
     },
-    [id, idle, loadItems, checkForUpdates, snapStates.settings.autoRefresh],
+    [id, loadItems, checkForUpdates, snapStates.settings.autoRefresh],
   );
 
   const lastHiddenTime = useRef();
@@ -249,7 +265,7 @@ function Timeline({
         const timeDiff = Date.now() - lastHiddenTime.current;
         if (!lastHiddenTime.current || timeDiff > 1000 * 60) {
           loadOrCheckUpdates({
-            disableHoverCheck: true,
+            disableIdleCheck: true,
           });
         }
       } else {
@@ -334,173 +350,46 @@ function Timeline({
               </button>
             )}
         </header>
-        {!!timelineStart && <div class="timeline-start">{timelineStart}</div>}
+        {!!timelineStart && (
+          <div
+            class={`timeline-start ${uiState === 'loading' ? 'loading' : ''}`}
+          >
+            {timelineStart}
+          </div>
+        )}
         {!!items.length ? (
           <>
-            <ul class="timeline">
-              {items.map((status) => {
-                const { id: statusID, reblog, items, type, _pinned } = status;
-                const actualStatusID = reblog?.id || statusID;
-                const url = instance
-                  ? `/${instance}/s/${actualStatusID}`
-                  : `/s/${actualStatusID}`;
-                let title = '';
-                if (type === 'boosts') {
-                  title = `${items.length} Boosts`;
-                } else if (type === 'pinned') {
-                  title = 'Pinned posts';
-                }
-                const isCarousel = type === 'boosts' || type === 'pinned';
-                if (items) {
-                  if (isCarousel) {
-                    // Here, we don't hide filtered posts, but we sort them last
-                    items.sort((a, b) => {
-                      if (a._filtered && !b._filtered) {
-                        return 1;
-                      }
-                      if (!a._filtered && b._filtered) {
-                        return -1;
-                      }
-                      return 0;
-                    });
-                    return (
-                      <li
-                        key={`timeline-${statusID}`}
-                        class="timeline-item-carousel"
-                      >
-                        <StatusCarousel
-                          title={title}
-                          class={`${type}-carousel`}
-                        >
-                          {items.map((item) => {
-                            const { id: statusID, reblog } = item;
-                            const actualStatusID = reblog?.id || statusID;
-                            const url = instance
-                              ? `/${instance}/s/${actualStatusID}`
-                              : `/s/${actualStatusID}`;
-                            return (
-                              <li key={statusID}>
-                                <Link
-                                  class="status-carousel-link timeline-item-alt"
-                                  to={url}
-                                >
-                                  {useItemID ? (
-                                    <Status
-                                      statusID={statusID}
-                                      instance={instance}
-                                      size="s"
-                                      contentTextWeight
-                                      allowFilters={allowFilters}
-                                    />
-                                  ) : (
-                                    <Status
-                                      status={item}
-                                      instance={instance}
-                                      size="s"
-                                      contentTextWeight
-                                      allowFilters={allowFilters}
-                                    />
-                                  )}
-                                </Link>
-                              </li>
-                            );
-                          })}
-                        </StatusCarousel>
-                      </li>
-                    );
-                  }
-                  const manyItems = items.length > 3;
-                  return items.map((item, i) => {
-                    const { id: statusID, _differentAuthor } = item;
-                    const url = instance
-                      ? `/${instance}/s/${statusID}`
-                      : `/s/${statusID}`;
-                    const isMiddle = i > 0 && i < items.length - 1;
-                    const isSpoiler = item.sensitive && !!item.spoilerText;
-                    const showCompact =
-                      (!_differentAuthor && isSpoiler && i > 0) ||
-                      (manyItems &&
-                        isMiddle &&
-                        (type === 'thread' ||
-                          (type === 'conversation' &&
-                            !_differentAuthor &&
-                            !items[i - 1]._differentAuthor &&
-                            !items[i + 1]._differentAuthor)));
-                    return (
-                      <li
-                        key={`timeline-${statusID}`}
-                        class={`timeline-item-container timeline-item-container-type-${type} timeline-item-container-${
-                          i === 0
-                            ? 'start'
-                            : i === items.length - 1
-                            ? 'end'
-                            : 'middle'
-                        } ${
-                          _differentAuthor ? 'timeline-item-diff-author' : ''
-                        }`}
-                      >
-                        <Link class="status-link timeline-item" to={url}>
-                          {showCompact ? (
-                            <TimelineStatusCompact
-                              status={item}
-                              instance={instance}
-                            />
-                          ) : useItemID ? (
-                            <Status
-                              statusID={statusID}
-                              instance={instance}
-                              allowFilters={allowFilters}
-                            />
-                          ) : (
-                            <Status
-                              status={item}
-                              instance={instance}
-                              allowFilters={allowFilters}
-                            />
-                          )}
-                        </Link>
-                      </li>
-                    );
-                  });
-                }
-                return (
-                  <li key={`timeline-${statusID + _pinned}`}>
-                    <Link class="status-link timeline-item" to={url}>
-                      {useItemID ? (
-                        <Status
-                          statusID={statusID}
-                          instance={instance}
-                          allowFilters={allowFilters}
-                        />
-                      ) : (
-                        <Status
-                          status={status}
-                          instance={instance}
-                          allowFilters={allowFilters}
-                        />
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-              {showMore && uiState === 'loading' && (
-                <>
-                  <li
-                    style={{
-                      height: '20vh',
-                    }}
-                  >
-                    <Status skeleton />
-                  </li>
-                  <li
-                    style={{
-                      height: '25vh',
-                    }}
-                  >
-                    <Status skeleton />
-                  </li>
-                </>
-              )}
+            <ul class={`timeline ${view ? `timeline-${view}` : ''}`}>
+              {items.map((status) => (
+                <TimelineItem
+                  status={status}
+                  instance={instance}
+                  useItemID={useItemID}
+                  allowFilters={allowFilters}
+                  key={status.id + status?._pinned}
+                  view={view}
+                />
+              ))}
+              {showMore &&
+                uiState === 'loading' &&
+                (view === 'media' ? null : (
+                  <>
+                    <li
+                      style={{
+                        height: '20vh',
+                      }}
+                    >
+                      <Status skeleton />
+                    </li>
+                    <li
+                      style={{
+                        height: '25vh',
+                      }}
+                    >
+                      <Status skeleton />
+                    </li>
+                  </>
+                ))}
             </ul>
             {uiState === 'default' &&
               (showMore ? (
@@ -526,11 +415,19 @@ function Timeline({
           </>
         ) : uiState === 'loading' ? (
           <ul class="timeline">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <li key={i}>
-                <Status skeleton />
-              </li>
-            ))}
+            {Array.from({ length: 5 }).map((_, i) =>
+              view === 'media' ? (
+                <div
+                  style={{
+                    height: '50vh',
+                  }}
+                />
+              ) : (
+                <li key={i}>
+                  <Status skeleton />
+                </li>
+              ),
+            )}
           </ul>
         ) : (
           uiState !== 'error' && <p class="ui-state">{emptyText}</p>
@@ -550,6 +447,157 @@ function Timeline({
         )}
       </div>
     </div>
+  );
+}
+
+function TimelineItem({ status, instance, useItemID, allowFilters, view }) {
+  const { id: statusID, reblog, items, type, _pinned } = status;
+  const actualStatusID = reblog?.id || statusID;
+  const url = instance
+    ? `/${instance}/s/${actualStatusID}`
+    : `/s/${actualStatusID}`;
+  let title = '';
+  if (type === 'boosts') {
+    title = `${items.length} Boosts`;
+  } else if (type === 'pinned') {
+    title = 'Pinned posts';
+  }
+  const isCarousel = type === 'boosts' || type === 'pinned';
+  if (items) {
+    if (isCarousel) {
+      // Here, we don't hide filtered posts, but we sort them last
+      items.sort((a, b) => {
+        if (a._filtered && !b._filtered) {
+          return 1;
+        }
+        if (!a._filtered && b._filtered) {
+          return -1;
+        }
+        return 0;
+      });
+      return (
+        <li key={`timeline-${statusID}`} class="timeline-item-carousel">
+          <StatusCarousel title={title} class={`${type}-carousel`}>
+            {items.map((item) => {
+              const { id: statusID, reblog } = item;
+              const actualStatusID = reblog?.id || statusID;
+              const url = instance
+                ? `/${instance}/s/${actualStatusID}`
+                : `/s/${actualStatusID}`;
+              return (
+                <li key={statusID}>
+                  <Link class="status-carousel-link timeline-item-alt" to={url}>
+                    {useItemID ? (
+                      <Status
+                        statusID={statusID}
+                        instance={instance}
+                        size="s"
+                        contentTextWeight
+                        allowFilters={allowFilters}
+                      />
+                    ) : (
+                      <Status
+                        status={item}
+                        instance={instance}
+                        size="s"
+                        contentTextWeight
+                        allowFilters={allowFilters}
+                      />
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
+          </StatusCarousel>
+        </li>
+      );
+    }
+    const manyItems = items.length > 3;
+    return items.map((item, i) => {
+      const { id: statusID, _differentAuthor } = item;
+      const url = instance ? `/${instance}/s/${statusID}` : `/s/${statusID}`;
+      const isMiddle = i > 0 && i < items.length - 1;
+      const isSpoiler = item.sensitive && !!item.spoilerText;
+      const showCompact =
+        (!_differentAuthor && isSpoiler && i > 0) ||
+        (manyItems &&
+          isMiddle &&
+          (type === 'thread' ||
+            (type === 'conversation' &&
+              !_differentAuthor &&
+              !items[i - 1]._differentAuthor &&
+              !items[i + 1]._differentAuthor)));
+      return (
+        <li
+          key={`timeline-${statusID}`}
+          class={`timeline-item-container timeline-item-container-type-${type} timeline-item-container-${
+            i === 0 ? 'start' : i === items.length - 1 ? 'end' : 'middle'
+          } ${_differentAuthor ? 'timeline-item-diff-author' : ''}`}
+        >
+          <Link class="status-link timeline-item" to={url}>
+            {showCompact ? (
+              <TimelineStatusCompact status={item} instance={instance} />
+            ) : useItemID ? (
+              <Status
+                statusID={statusID}
+                instance={instance}
+                allowFilters={allowFilters}
+              />
+            ) : (
+              <Status
+                status={item}
+                instance={instance}
+                allowFilters={allowFilters}
+              />
+            )}
+          </Link>
+        </li>
+      );
+    });
+  }
+
+  const itemKey = `timeline-${statusID + _pinned}`;
+
+  if (view === 'media') {
+    return useItemID ? (
+      <MediaPost
+        class="timeline-item"
+        parent="li"
+        key={itemKey}
+        statusID={statusID}
+        instance={instance}
+        allowFilters={allowFilters}
+      />
+    ) : (
+      <MediaPost
+        class="timeline-item"
+        parent="li"
+        key={itemKey}
+        status={status}
+        instance={instance}
+        allowFilters={allowFilters}
+      />
+    );
+  }
+
+  return (
+    <li key={itemKey}>
+      <Link class="status-link timeline-item" to={url}>
+        {useItemID ? (
+          <Status
+            statusID={statusID}
+            instance={instance}
+            allowFilters={allowFilters}
+          />
+        ) : (
+          <Status
+            status={status}
+            instance={instance}
+            allowFilters={allowFilters}
+          />
+        )}
+      </Link>
+    </li>
   );
 }
 
@@ -603,11 +651,16 @@ function StatusCarousel({ title, class: className, children }) {
 
 function TimelineStatusCompact({ status, instance }) {
   const snapStates = useSnapshot(states);
-  const { id } = status;
+  const { id, visibility } = status;
   const statusPeekText = statusPeek(status);
   const sKey = statusKey(id, instance);
   return (
-    <article class="status compact-thread" tabindex="-1">
+    <article
+      class={`status compact-thread ${
+        visibility === 'direct' ? 'visibility-direct' : ''
+      }`}
+      tabindex="-1"
+    >
       {!!snapStates.statusThreadNumber[sKey] ? (
         <div class="status-thread-badge">
           <Icon icon="thread" size="s" />
