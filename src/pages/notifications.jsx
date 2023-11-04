@@ -179,22 +179,24 @@ function Notifications({ columnMode }) {
 
   const loadUpdates = useCallback(
     ({ disableIdleCheck = false } = {}) => {
+      if (uiState === 'loading') {
+        return;
+      }
       console.log('✨ Load updates', {
         autoRefresh: snapStates.settings.autoRefresh,
         scrollTop: scrollableRef.current?.scrollTop,
         inBackground: inBackground(),
         disableIdleCheck,
         notificationsShowNew: snapStates.notificationsShowNew,
-        uiState,
       });
       if (
         snapStates.settings.autoRefresh &&
         scrollableRef.current?.scrollTop < 16 &&
         (disableIdleCheck || window.__IDLE__) &&
         !inBackground() &&
-        snapStates.notificationsShowNew &&
-        uiState !== 'loading'
+        snapStates.notificationsShowNew
       ) {
+        setShowNew(false);
         loadNotifications(true);
       } else {
         setShowNew(snapStates.notificationsShowNew);
