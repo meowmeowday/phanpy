@@ -39,7 +39,7 @@ function Welcome() {
             </b>
           </big>
         </p>
-        <p class="desc">meow.day, 一个轻量级的ActivityPub服务实例Web端</p>
+        <p class="desc">meow.day, 又一个ActivityPub实例</p>
         <p>
           <a href="https://forms.meow.day/s/clnjw0kwr0001oa01te98qd1n" target="_blank">
             还没有账户？快来注册吧！
@@ -56,7 +56,6 @@ function Welcome() {
           </a>
         </p>
       </div>
-      <hr />
       <div id="why-container">
         <div class="sections">
           <section>
@@ -114,31 +113,33 @@ function Welcome() {
           </section>
         </div>
       </div>
-      <hr />
-      <p>
-        <a href="https://github.com/cheeaun/phanpy" target="_blank">
-          Built
-        </a>{' '}
-        by{' '}
-        <a
-          href="https://mastodon.social/@cheeaun"
-          target="_blank"
-          onClick={(e) => {
-            e.preventDefault();
-            states.showAccount = 'cheeaun@mastodon.social';
-          }}
-        >
-          @cheeaun
-        </a>
-        .{' '}
-        <a
-          href="https://github.com/cheeaun/phanpy/blob/main/PRIVACY.MD"
-          target="_blank"
-        >
-          Privacy Policy
-        </a>
-        .
-      </p>
+      <footer>
+        <hr />
+        <p>
+          <a href="https://github.com/cheeaun/phanpy" target="_blank">
+            Built
+          </a>{' '}
+          by{' '}
+          <a
+            href="https://mastodon.social/@cheeaun"
+            target="_blank"
+            onClick={(e) => {
+              e.preventDefault();
+              states.showAccount = 'cheeaun@mastodon.social';
+            }}
+          >
+            @cheeaun
+          </a>
+          .{' '}
+          <a
+            href="https://github.com/cheeaun/phanpy/blob/main/PRIVACY.MD"
+            target="_blank"
+          >
+            Privacy Policy
+          </a>
+          .
+        </p>
+      </footer>
     </main>
   );
 }
