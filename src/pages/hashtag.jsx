@@ -42,7 +42,11 @@ function Hashtags({ media: mediaView, columnMode, ...props }) {
   const { masto, instance, authenticated } = api({
     instance: props?.instance || params.instance,
   });
-  const { authenticated: currentAuthenticated } = api();
+  const {
+    masto: currentMasto,
+    instance: currentInstance,
+    authenticated: currentAuthenticated,
+  } = api();
   const hashtagTitle = hashtags.map((t) => `#${t}`).join(' ');
   const hashtagPostTitle = media ? ` (Media only)` : '';
   const title = instance
@@ -78,7 +82,7 @@ function Hashtags({ media: mediaView, columnMode, ...props }) {
         latestItem.current = value[0].id;
       }
 
-      value = filteredItems(value, 'public');
+      // value = filteredItems(value, 'public');
       value.forEach((item) => {
         saveStatus(item, instance, {
           skipThreading: media, // If media view, no need to form threads
@@ -153,7 +157,8 @@ function Hashtags({ media: mediaView, columnMode, ...props }) {
       useItemID
       view={media ? 'media' : undefined}
       refresh={media}
-      allowFilters
+      // allowFilters
+      filterContext="public"
       headerEnd={
         <Menu2
           portal
@@ -375,6 +380,20 @@ function Hashtags({ media: mediaView, columnMode, ...props }) {
           >
             <Icon icon="bus" /> <span>Go to another instance…</span>
           </MenuItem>
+          {currentInstance !== instance && (
+            <MenuItem
+              onClick={() => {
+                location.hash = `/${currentInstance}/t/${hashtags.join(
+                  '+',
+                )}${linkParams}`;
+              }}
+            >
+              <Icon icon="bus" />{' '}
+              <small class="menu-double-lines">
+                Go to my instance (<b>{currentInstance}</b>)
+              </small>
+            </MenuItem>
+          )}
         </Menu2>
       }
     />

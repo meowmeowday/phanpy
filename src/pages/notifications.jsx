@@ -130,24 +130,30 @@ function Notifications({ columnMode }) {
   }
 
   const loadNotifications = (firstLoad) => {
+    setShowNew(false);
     setUIState('loading');
     (async () => {
       try {
         const fetchNotificationsPromise = fetchNotifications(firstLoad);
-        const fetchFollowRequestsPromise = fetchFollowRequests();
-        const fetchAnnouncementsPromise = fetchAnnouncements();
 
         if (firstLoad) {
-          const announcements = await fetchAnnouncementsPromise;
-          announcements.sort((a, b) => {
-            // Sort by updatedAt first, then createdAt
-            const aDate = new Date(a.updatedAt || a.createdAt);
-            const bDate = new Date(b.updatedAt || b.createdAt);
-            return bDate - aDate;
-          });
-          setAnnouncements(announcements);
-          const requests = await fetchFollowRequestsPromise;
-          setFollowRequests(requests);
+          fetchAnnouncements()
+            .then((announcements) => {
+              announcements.sort((a, b) => {
+                // Sort by updatedAt first, then createdAt
+                const aDate = new Date(a.updatedAt || a.createdAt);
+                const bDate = new Date(b.updatedAt || b.createdAt);
+                return bDate - aDate;
+              });
+              setAnnouncements(announcements);
+            })
+            .catch(() => {});
+
+          fetchFollowRequests()
+            .then((requests) => {
+              setFollowRequests(requests);
+            })
+            .catch(() => {});
         }
 
         const { done } = await fetchNotificationsPromise;
@@ -179,25 +185,22 @@ function Notifications({ columnMode }) {
 
   const loadUpdates = useCallback(
     ({ disableIdleCheck = false } = {}) => {
+      if (uiState === 'loading') {
+        return;
+      }
       console.log('✨ Load updates', {
         autoRefresh: snapStates.settings.autoRefresh,
         scrollTop: scrollableRef.current?.scrollTop,
         inBackground: inBackground(),
         disableIdleCheck,
-        notificationsShowNew: snapStates.notificationsShowNew,
-        uiState,
       });
       if (
         snapStates.settings.autoRefresh &&
         scrollableRef.current?.scrollTop < 16 &&
         (disableIdleCheck || window.__IDLE__) &&
-        !inBackground() &&
-        snapStates.notificationsShowNew &&
-        uiState !== 'loading'
+        !inBackground()
       ) {
         loadNotifications(true);
-      } else {
-        setShowNew(snapStates.notificationsShowNew);
       }
     },
     [snapStates.notificationsShowNew, snapStates.settings.autoRefresh, uiState],
@@ -209,7 +212,8 @@ function Notifications({ columnMode }) {
     let unsub;
     if (visible) {
       const timeDiff = Date.now() - lastHiddenTime.current;
-      if (!lastHiddenTime.current || timeDiff > 1000 * 60) {
+      if (!lastHiddenTime.current || timeDiff > 1000 * 3) {
+        // 3 seconds
         loadUpdates({
           disableIdleCheck: true,
         });
@@ -220,6 +224,7 @@ function Notifications({ columnMode }) {
         if (v) {
           loadUpdates();
         }
+        setShowNew(v);
       });
     }
     return () => {
