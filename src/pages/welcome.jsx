@@ -64,10 +64,9 @@ function Welcome() {
               alt="Screenshot of Boosts Carousel"
               loading="lazy"
             />
-            <h4>Boosts Carousel</h4>
+            <h4>聚合转嘟</h4>
             <p>
-              Visually separate original posts and re-shared posts (boosted
-              posts).
+              在时间线上将原创嘟文和转嘟分开显示。
             </p>
           </section>
           <section>
@@ -76,8 +75,8 @@ function Welcome() {
               alt="Screenshot of nested comments thread"
               loading="lazy"
             />
-            <h4>Nested comments thread</h4>
-            <p>Effortlessly follow conversations. Semi-collapsible replies.</p>
+            <h4>聚合回复</h4>
+            <p>利用折叠层级回复结构，轻松聚焦对话。</p>
           </section>
           <section>
             <img
@@ -85,9 +84,9 @@ function Welcome() {
               alt="Screenshot of grouped notifications"
               loading="lazy"
             />
-            <h4>Grouped notifications</h4>
+            <h4>聚合通知</h4>
             <p>
-              Similar notifications are grouped and collapsed to reduce clutter.
+              将不同用户对你的通知的互动聚合在一起。
             </p>
           </section>
           <section>
@@ -96,10 +95,9 @@ function Welcome() {
               alt="Screenshot of multi-column UI"
               loading="lazy"
             />
-            <h4>Single or multi-column</h4>
+            <h4>自定义页面栏目</h4>
             <p>
-              By default, single column for zen-mode seekers. Configurable
-              multi-column for power users.
+              在默认状态下，只会显示单栏页面，你可以自定义主页显示的栏目数。
             </p>
           </section>
           <section>
@@ -108,8 +106,8 @@ function Welcome() {
               alt="Screenshot of multi-hashtag timeline with a form to add more hashtags"
               loading="lazy"
             />
-            <h4>Multi-hashtag timeline</h4>
-            <p>Up to 5 hashtags combined into a single timeline.</p>
+            <h4>多标签时间线</h4>
+            <p>你可以在时间线上关注至多5个不同标签。</p>
           </section>
         </div>
       </div>
