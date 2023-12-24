@@ -240,6 +240,7 @@ function NavMenu(props) {
                     id: 'mute',
                     heading: 'Muted users',
                     fetchAccounts: fetchMutes,
+                    excludeRelationshipAttrs: ['muting'],
                   };
                 }}
               >
@@ -251,6 +252,7 @@ function NavMenu(props) {
                     id: 'block',
                     heading: 'Blocked users',
                     fetchAccounts: fetchBlocks,
+                    excludeRelationshipAttrs: ['blocking'],
                   };
                 }}
               >

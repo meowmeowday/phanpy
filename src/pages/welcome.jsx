@@ -17,43 +17,57 @@ function Welcome() {
   return (
     <main id="welcome">
       <div class="hero-container">
-        <h1>
-          <img
-            src={logo}
-            alt=""
-            width="200"
-            height="200"
-            style={{
-              aspectRatio: '1/1',
-              marginBlockEnd: -16,
+        <div class="hero-content">
+          <h1>
+            <img
+              src={logo}
+              alt=""
+              width="160"
+              height="160"
+              style={{
+                aspectRatio: '1/1',
+                marginBlockEnd: -16,
+              }}
+            />
+            <img src={logoText} alt="Phanpy" width="200" />
+          </h1>
+          <p class="desc">A minimalistic opinionated Mastodon web client.</p>
+          <p>
+            <Link to="/login" class="button">
+              Log in with Mastodon
+            </Link>
+          </p>
+          <p class="insignificant">
+            <small>
+              Connect your existing Mastodon/Fediverse account.
+              <br />
+              Your credentials are not stored on this server.
+            </small>
+          </p>
+        </div>
+        <p>
+          <a href="https://github.com/cheeaun/phanpy" target="_blank">
+            Built
+          </a>{' '}
+          by{' '}
+          <a
+            href="https://mastodon.social/@cheeaun"
+            target="_blank"
+            onClick={(e) => {
+              e.preventDefault();
+              states.showAccount = 'cheeaun@mastodon.social';
             }}
-          />
-          <img src={logoText} alt="Phanpy" width="250" />
-        </h1>
-        <p>
-          <big>
-            <b>
-              <Link to="/login" class="button">
-                进来！
-              </Link>
-            </b>
-          </big>
-        </p>
-        <p class="desc">meow.day, 又一个ActivityPub实例</p>
-        <p>
-          <a href="https://forms.meow.day/s/clnjw0kwr0001oa01te98qd1n" target="_blank">
-            还没有账户？快来注册吧！
+          >
+            @cheeaun
           </a>
-        </p>
-        <p>
-          <a href="https://meow.day/about" target="_blank">
-            查看站点信息
+          .{' '}
+          <a
+            href="https://github.com/cheeaun/phanpy/blob/main/PRIVACY.MD"
+            target="_blank"
+          >
+            Privacy Policy
           </a>
-        </p>
-        <p>
-          <a href="https://meow.meow.day/#/meow.day/p" target="_blank">
-            预览本站
-          </a>
+          .
         </p>
       </div>
       <div id="why-container">
@@ -111,33 +125,6 @@ function Welcome() {
           </section>
         </div>
       </div>
-      <footer>
-        <hr />
-        <p>
-          <a href="https://github.com/cheeaun/phanpy" target="_blank">
-            Built
-          </a>{' '}
-          by{' '}
-          <a
-            href="https://mastodon.social/@cheeaun"
-            target="_blank"
-            onClick={(e) => {
-              e.preventDefault();
-              states.showAccount = 'cheeaun@mastodon.social';
-            }}
-          >
-            @cheeaun
-          </a>
-          .{' '}
-          <a
-            href="https://github.com/cheeaun/phanpy/blob/main/PRIVACY.MD"
-            target="_blank"
-          >
-            Privacy Policy
-          </a>
-          .
-        </p>
-      </footer>
     </main>
   );
 }

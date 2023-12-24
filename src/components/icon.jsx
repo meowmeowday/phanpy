@@ -1,5 +1,5 @@
 import { memo } from 'preact/compat';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 
 const SIZES = {
   s: 12,
@@ -104,7 +104,10 @@ export const ICONS = {
   cloud: () => import('@iconify-icons/mingcute/cloud-line'),
   month: () => import('@iconify-icons/mingcute/calendar-month-line'),
   media: () => import('@iconify-icons/mingcute/photo-album-line'),
+  speak: () => import('@iconify-icons/mingcute/radar-line'),
 };
+
+const ICONDATA = {};
 
 function Icon({
   icon,
@@ -123,11 +126,17 @@ function Icon({
     [iconBlock, rotate, flip] = iconBlock;
   }
 
-  const [iconData, setIconData] = useState(null);
-  useEffect(async () => {
-    const icon = await iconBlock();
-    setIconData(icon.default);
-  }, [iconBlock]);
+  const [iconData, setIconData] = useState(ICONDATA[icon]);
+  const currentIcon = useRef(icon);
+  useEffect(() => {
+    if (iconData && currentIcon.current === icon) return;
+    (async () => {
+      const iconB = await iconBlock();
+      setIconData(iconB.default);
+      ICONDATA[icon] = iconB.default;
+    })();
+    currentIcon.current = icon;
+  }, [icon]);
 
   return (
     <span
