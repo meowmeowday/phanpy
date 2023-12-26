@@ -216,6 +216,9 @@ button,
   text-decoration: none;
   user-select: none;
 }
+button[hidden] {
+  display: none;
+}
 :is(button, .button) > * {
   vertical-align: middle;
   pointer-events: none;

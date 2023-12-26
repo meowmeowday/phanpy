@@ -12,6 +12,8 @@ import { getAuthorizationURL, registerApplication } from '../utils/auth';
 import store from '../utils/store';
 import useTitle from '../utils/useTitle';
 
+const { PHANPY_DEFAULT_INSTANCE: DEFAULT_INSTANCE } = import.meta.env;
+
 function Login() {
   useTitle('Log in');
   const instanceURLRef = useRef();
@@ -19,6 +21,7 @@ function Login() {
   const [uiState, setUIState] = useState('default');
   const [searchParams] = useSearchParams();
   const instance = searchParams.get('instance');
+  const submit = searchParams.get('submit');
   const [instanceText, setInstanceText] = useState(
     instance || cachedInstanceURL?.toLowerCase() || 'meow.day',
   );
@@ -128,6 +131,12 @@ function Login() {
     // submitInstance(instanceURL);
     submitInstance(selectedInstanceText);
   };
+
+  if (submit) {
+    useEffect(() => {
+      submitInstance(instance || selectedInstanceText);
+    }, []);
+  }
 
   return (
     <main id="login" style={{ textAlign: 'center' }}>
