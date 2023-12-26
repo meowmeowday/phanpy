@@ -200,24 +200,23 @@ function Login() {
         </div>
         <Loader hidden={uiState !== 'loading'} />
         <hr />
-        <p>
-          <a href="https://forms.meow.day/s/clnjw0kwr0001oa01te98qd1n" target="_blank">
+        <p class="insignificant">
+            <small>
+            <a href="https://forms.meow.day/s/clnjw0kwr0001oa01te98qd1n" target="_blank">
             还没有账户？快来注册吧！
-          </a>
-        </p>
-        <p>
-          <a href="https://meow.day/about" target="_blank">
+            </a>
+              <br />
+            <a href="https://meow.day/about" target="_blank">
             查看站点信息
-          </a>
-        </p>
-        <p>
-          <a href="https://meow.meow.day/#/meow.day/p" target="_blank">
+            </a>
+              <br />
+            <a href="https://meow.meow.day/#/meow.day/p" target="_blank">
             预览本站
-          </a>
-        </p>
-        <p>
-          <Link to="/">返回主页</Link>
-        </p>
+            </a>
+              <br />
+            <Link to="/">返回主页</Link>
+            </small>
+          </p>
       </form>
     </main>
   );
