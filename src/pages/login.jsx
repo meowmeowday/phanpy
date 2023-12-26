@@ -194,8 +194,8 @@ function Login() {
             }
           >
             {selectedInstanceText
-              ? `Continue with ${selectedInstanceText}`
-              : 'Continue'}
+              ? `登录到 ${selectedInstanceText}站`
+              : '登录'}
           </button>{' '}
         </div>
         <Loader hidden={uiState !== 'loading'} />

@@ -31,15 +31,15 @@ function Welcome() {
             />
             <img src={logoText} alt="Phanpy" width="200" />
           </h1>
-          <p class="desc">A minimalistic opinionated Mastodon web client.</p>
+          <p class="desc">meow.day, 一个Fediverse实例。</p>
           <p>
             <Link to="/login" class="button">
-              Log in with Mastodon
+              进来！
             </Link>
           </p>
           <p class="insignificant">
             <small>
-              Connect your existing Mastodon/Fediverse account.
+            <a href="https://mastodon.social/@cheeaun">Connect your existing Mastodon/Fediverse account.</a>
               <br />
               Your credentials are not stored on this server.
             </small>
