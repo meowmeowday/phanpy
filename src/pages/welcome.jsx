@@ -39,9 +39,17 @@ function Welcome() {
           </p>
           <p class="insignificant">
             <small>
-            <a href="https://mastodon.social/@cheeaun">Connect your existing Mastodon/Fediverse account.</a>
+            <a href="https://forms.meow.day/s/clnjw0kwr0001oa01te98qd1n" target="_blank">
+            还没有账户？快来注册吧！
+            </a>
               <br />
-              Your credentials are not stored on this server.
+            <a href="https://meow.day/about" target="_blank">
+            查看站点信息
+            </a>
+              <br />
+            <a href="https://meow.meow.day/#/meow.day/p" target="_blank">
+            预览本站
+            </a>
             </small>
           </p>
         </div>
