@@ -209,6 +209,7 @@ function Login() {
         </div>
         <Loader hidden={uiState !== 'loading'} />
         <hr />
+        {!DEFAULT_INSTANCE && (
         <p class="insignificant">
             <small>
             <a href="https://forms.meow.day/s/clnjw0kwr0001oa01te98qd1n" target="_blank">
@@ -222,10 +223,13 @@ function Login() {
             <a href="https://meow.meow.day/#/meow.day/p" target="_blank">
             预览本站
             </a>
-              <br />
-            <Link to="/">返回主页</Link>
             </small>
           </p>
+          )}
+        <p>
+          <Link to="/">返回主页</Link>
+        </p>
+
       </form>
     </main>
   );
