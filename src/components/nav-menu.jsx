@@ -202,7 +202,7 @@ function NavMenu(props) {
             <Icon icon="search" size="l" /> <span>搜索</span>
           </MenuLink>
           <MenuLink to={`/${instance}/p/l`}>
-            <Icon icon="group" size="l" /> <span>本地时间线</span>
+            <Icon icon="building" size="l" /> <span>本地时间线</span>
           </MenuLink>
           <MenuLink to={`/${instance}/p`}>
             <Icon icon="earth" size="l" /> <span>联邦时间线</span>
