@@ -22,7 +22,7 @@ import shortenNumber from '../utils/shorten-number';
 import showToast from '../utils/show-toast';
 import states, { hideAllModals } from '../utils/states';
 import store from '../utils/store';
-import { updateAccount } from '../utils/store-utils';
+import { getCurrentAccountID, updateAccount } from '../utils/store-utils';
 
 import AccountBlock from './account-block';
 import Avatar from './avatar';
@@ -198,10 +198,7 @@ function AccountInfo({
     }
   }
 
-  const isSelf = useMemo(
-    () => id === store.session.get('currentAccount'),
-    [id],
-  );
+  const isSelf = useMemo(() => id === getCurrentAccountID(), [id]);
 
   useEffect(() => {
     const infoHasEssentials = !!(
@@ -254,12 +251,13 @@ function AccountInfo({
     // On first load, fetch familiar followers, merge to top of results' `value`
     // Remove dups on every fetch
     if (firstLoad) {
-      const familiarFollowers = await masto.v1.accounts.familiarFollowers.fetch(
-        {
+      let familiarFollowers = [];
+      try {
+        familiarFollowers = await masto.v1.accounts.familiarFollowers.fetch({
           id: [id],
-        },
-      );
-      familiarFollowersCache.current = familiarFollowers[0].accounts;
+        });
+      } catch (e) {}
+      familiarFollowersCache.current = familiarFollowers?.[0]?.accounts || [];
       newValue = [
         ...familiarFollowersCache.current,
         ...value.filter(
@@ -919,7 +917,7 @@ function RelatedActions({
 
   useEffect(() => {
     if (info) {
-      const currentAccount = store.session.get('currentAccount');
+      const currentAccount = getCurrentAccountID();
       let currentID;
       (async () => {
         if (sameInstance && authenticated) {

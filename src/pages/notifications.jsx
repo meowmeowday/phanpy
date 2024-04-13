@@ -3,7 +3,6 @@ import './notifications.css';
 import { Fragment } from 'preact';
 import { memo } from 'preact/compat';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { useHotkeys } from 'react-hotkeys-hook';
 import { InView } from 'react-intersection-observer';
 import { useSearchParams } from 'react-router-dom';
 import { useSnapshot } from 'valtio';
@@ -29,6 +28,7 @@ import showToast from '../utils/show-toast';
 import states, { saveStatus } from '../utils/states';
 import { getCurrentInstance } from '../utils/store-utils';
 import supports from '../utils/supports';
+import useHotkeys from '../utils/useHotkeys';
 import usePageVisibility from '../utils/usePageVisibility';
 import useScroll from '../utils/useScroll';
 import useTitle from '../utils/useTitle';
@@ -71,6 +71,13 @@ function Notifications({ columnMode }) {
         limit: LIMIT,
         excludeTypes: ['follow_request'],
       });
+    }
+    if (/max_id=($|&)/i.test(notificationsIterator.current?.nextParams)) {
+      // Pixelfed returns next paginationed link with empty max_id
+      // I assume, it's done (end of list)
+      return {
+        done: true,
+      };
     }
     const allNotifications = await notificationsIterator.current.next();
     const notifications = allNotifications.value;
@@ -247,7 +254,6 @@ function Notifications({ columnMode }) {
 
   const lastHiddenTime = useRef();
   usePageVisibility((visible) => {
-    let unsub;
     if (visible) {
       const timeDiff = Date.now() - lastHiddenTime.current;
       if (!lastHiddenTime.current || timeDiff > 1000 * 3) {
@@ -258,20 +264,16 @@ function Notifications({ columnMode }) {
       } else {
         lastHiddenTime.current = Date.now();
       }
-      unsub = subscribeKey(states, 'notificationsShowNew', (v) => {
-        if (uiState === 'loading') {
-          return;
-        }
-        if (v) {
-          loadUpdates();
-        }
-        setShowNew(v);
-      });
     }
-    return () => {
-      unsub?.();
-    };
   });
+  useEffect(() => {
+    let unsub = subscribeKey(states, 'notificationsShowNew', (v) => {
+      if (uiState === 'loading') return;
+      if (v) loadUpdates();
+      setShowNew(v);
+    });
+    return () => unsub?.();
+  }, []);
 
   const todayDate = new Date();
   const yesterdayDate = new Date(todayDate - 24 * 60 * 60 * 1000);
@@ -418,7 +420,7 @@ function Notifications({ columnMode }) {
               {supportsFilteredNotifications && (
                 <button
                   type="button"
-                  class="button plain"
+                  class="button plain4"
                   onClick={() => {
                     setShowNotificationsSettings(true);
                   }}
@@ -613,7 +615,7 @@ function Notifications({ columnMode }) {
           </label>
         </div>
         <h2 class="timeline-header">Today</h2>
-        {showTodayEmpty && !!snapStates.notifications.length && (
+        {showTodayEmpty && (
           <p class="ui-state insignificant">
             {uiState === 'default' ? "You're all caught up." : <>&hellip;</>}
           </p>

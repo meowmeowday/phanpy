@@ -5,7 +5,6 @@ import { MenuItem } from '@szhsin/react-menu';
 import { deepEqual } from 'fast-equals';
 import { forwardRef } from 'preact/compat';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { useHotkeys } from 'react-hotkeys-hook';
 import stringLength from 'string-length';
 import { uid } from 'uid/single';
 import { useDebouncedCallback, useThrottledCallback } from 'use-debounce';
@@ -33,6 +32,7 @@ import {
 } from '../utils/store-utils';
 import supports from '../utils/supports';
 import useCloseWatcher from '../utils/useCloseWatcher';
+import useHotkeys from '../utils/useHotkeys';
 import useInterval from '../utils/useInterval';
 import visibilityIconsMap from '../utils/visibility-icons-map';
 
@@ -124,7 +124,7 @@ const MENTION_RE = new RegExp(
 
 // AI-generated, all other regexes are too complicated
 const HASHTAG_RE = new RegExp(
-  `(^|[^=\\/\\w])(#[a-z0-9_]+([a-z0-9_.-]+[a-z0-9_]+)?)(?![\\/\\w])`,
+  `(^|[^=\\/\\w])(#[a-z0-9_]+([a-z0-9_.]+[a-z0-9_]+)?)(?![\\/\\w])`,
   'ig',
 );
 
@@ -988,7 +988,11 @@ function Compose({
                 } else {
                   try {
                     newStatus = await masto.v1.statuses.create(params, {
-                      idempotencyKey: UID.current,
+                      requestInit: {
+                        headers: {
+                          'Idempotency-Key': UID.current,
+                        },
+                      },
                     });
                   } catch (_) {
                     // If idempotency key fails, try again without it
