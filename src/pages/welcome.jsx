@@ -69,7 +69,7 @@ function Welcome() {
           {!DEFAULT_INSTANCE && (
             <p class="insignificant">
               <small>
-              <a href="https://forms.meow.day/s/clnjw0kwr0001oa01te98qd1n" target="_blank">
+              <a href="https://meow.day/signup" target="_blank">
             还没有账户？快来注册吧！
             </a>
               <br />
