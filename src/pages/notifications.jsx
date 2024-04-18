@@ -3,6 +3,7 @@ import './notifications.css';
 import { Fragment } from 'preact';
 import { memo } from 'preact/compat';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { InView } from 'react-intersection-observer';
 import { useSearchParams } from 'react-router-dom';
 import { useSnapshot } from 'valtio';
@@ -28,7 +29,6 @@ import showToast from '../utils/show-toast';
 import states, { saveStatus } from '../utils/states';
 import { getCurrentInstance } from '../utils/store-utils';
 import supports from '../utils/supports';
-import useHotkeys from '../utils/useHotkeys';
 import usePageVisibility from '../utils/usePageVisibility';
 import useScroll from '../utils/useScroll';
 import useTitle from '../utils/useTitle';
@@ -88,6 +88,21 @@ function Notifications({ columnMode }) {
           skipThreading: true,
         });
       });
+
+      // TEST: Slot in a fake notification to test 'severed_relationships'
+      // notifications.unshift({
+      //   id: '123123',
+      //   type: 'severed_relationships',
+      //   createdAt: '2024-03-22T19:20:08.316Z',
+      //   event: {
+      //     type: 'account_suspension',
+      //     targetName: 'mastodon.dev',
+      //     followersCount: 0,
+      //     followingCount: 0,
+      //   },
+      // });
+
+      // console.log({ notifications });
 
       const groupedNotifications = groupNotifications(notifications);
 

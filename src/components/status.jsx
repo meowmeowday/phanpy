@@ -11,6 +11,7 @@ import {
 import { decodeBlurHash, getBlurHashAverageColor } from 'fast-blurhash';
 import { shallowEqual } from 'fast-equals';
 import prettify from 'html-prettify';
+import { Fragment } from 'preact';
 import { memo } from 'preact/compat';
 import {
   useCallback,
@@ -21,6 +22,7 @@ import {
   useState,
 } from 'preact/hooks';
 import punycode from 'punycode';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { useLongPress } from 'use-long-press';
 import { useSnapshot } from 'valtio';
 
@@ -55,8 +57,8 @@ import states, { getStatus, saveStatus, statusKey } from '../utils/states';
 import statusPeek from '../utils/status-peek';
 import store from '../utils/store';
 import { getCurrentAccountID } from '../utils/store-utils';
+import supports from '../utils/supports';
 import unfurlMastodonLink from '../utils/unfurl-link';
-import useHotkeys from '../utils/useHotkeys';
 import useTruncated from '../utils/useTruncated';
 import visibilityIconsMap from '../utils/visibility-icons-map';
 
@@ -149,6 +151,12 @@ const PostContent = memo(
   },
 );
 
+const SIZE_CLASS = {
+  s: 'small',
+  m: 'medium',
+  l: 'large',
+};
+
 function Status({
   statusID,
   status,
@@ -174,7 +182,11 @@ function Status({
 }) {
   if (skeleton) {
     return (
-      <div class={`status skeleton ${mediaFirst ? 'status-media-first' : ''}`}>
+      <div
+        class={`status skeleton ${
+          mediaFirst ? 'status-media-first small' : ''
+        }`}
+      >
         {!mediaFirst && <Avatar size="xxl" />}
         <div class="container">
           <div class="meta">
@@ -395,8 +407,8 @@ function Status({
   }
 
   // Check followedTags
-  if (showFollowedTags && !!snapStates.statusFollowedTags[sKey]?.length) {
-    return (
+  const FollowedTagsParent = useCallback(
+    ({ children }) => (
       <div
         data-state-post-id={sKey}
         class="status-followed-tags"
@@ -414,19 +426,15 @@ function Status({
             </Link>
           ))}
         </div>
-        <Status
-          status={statusID ? null : status}
-          statusID={statusID ? status.id : null}
-          instance={instance}
-          size={size}
-          contentTextWeight={contentTextWeight}
-          readOnly={readOnly}
-          enableCommentHint
-          mediaFirst={mediaFirst}
-        />
+        {children}
       </div>
-    );
-  }
+    ),
+    [sKey, instance, snapStates.statusFollowedTags[sKey]],
+  );
+  const StatusParent =
+    showFollowedTags && !!snapStates.statusFollowedTags[sKey]?.length
+      ? FollowedTagsParent
+      : Fragment;
 
   const isSizeLarge = size === 'l';
 
@@ -640,6 +648,7 @@ function Status({
   };
 
   const bookmarkStatus = async () => {
+    if (!supports('@mastodon/post-bookmark')) return;
     if (!sameInstance || !authenticated) {
       alert(unauthInteractionErrorMessage);
       return false;
@@ -827,13 +836,15 @@ function Status({
                   : 'Like'}
               </span>
             </MenuItem>
-            <MenuItem
-              onClick={bookmarkStatusNotify}
-              className={`menu-bookmark ${bookmarked ? 'checked' : ''}`}
-            >
-              <Icon icon="bookmark" />
-              <span>{bookmarked ? 'Unbookmark' : 'Bookmark'}</span>
-            </MenuItem>
+            {supports('@mastodon/post-bookmark') && (
+              <MenuItem
+                onClick={bookmarkStatusNotify}
+                className={`menu-bookmark ${bookmarked ? 'checked' : ''}`}
+              >
+                <Icon icon="bookmark" />
+                <span>{bookmarked ? 'Unbookmark' : 'Bookmark'}</span>
+              </MenuItem>
+            )}
           </div>
         </>
       )}
@@ -1077,16 +1088,18 @@ function Status({
       )}
       {isSelf && (
         <div class="menu-horizontal">
-          <MenuItem
-            onClick={() => {
-              states.showCompose = {
-                editStatus: status,
-              };
-            }}
-          >
-            <Icon icon="pencil" />
-            <span>Edit</span>
-          </MenuItem>
+          {supports('@mastodon/post-edit') && (
+            <MenuItem
+              onClick={() => {
+                states.showCompose = {
+                  editStatus: status,
+                };
+              }}
+            >
+              <Icon icon="pencil" />
+              <span>Edit</span>
+            </MenuItem>
+          )}
           {isSizeLarge && (
             <MenuConfirm
               subMenu
@@ -1367,7 +1380,7 @@ function Status({
   ]);
 
   return (
-    <>
+    <StatusParent>
       {showReplyParent && !!(inReplyToId && inReplyToAccountId) && (
         <StatusCompact sKey={sKey} />
       )}
@@ -1395,11 +1408,7 @@ function Status({
             ? 'status-reply-to'
             : ''
         } visibility-${visibility} ${_pinned ? 'status-pinned' : ''} ${
-          {
-            s: 'small',
-            m: 'medium',
-            l: 'large',
-          }[size]
+          SIZE_CLASS[size]
         } ${_deleted ? 'status-deleted' : ''} ${quoted ? 'status-card' : ''} ${
           isContextMenuOpen ? 'status-menu-open' : ''
         } ${mediaFirst && hasMediaAttachments ? 'status-media-first' : ''}`}
@@ -2160,16 +2169,18 @@ function Status({
                     onClick={favouriteStatus}
                   />
                 </div>
-                <div class="action">
-                  <StatusButton
-                    checked={bookmarked}
-                    title={['Bookmark', 'Unbookmark']}
-                    alt={['Bookmark', 'Bookmarked']}
-                    class="bookmark-button"
-                    icon="bookmark"
-                    onClick={bookmarkStatus}
-                  />
-                </div>
+                {supports('@mastodon/post-bookmark') && (
+                  <div class="action">
+                    <StatusButton
+                      checked={bookmarked}
+                      title={['Bookmark', 'Unbookmark']}
+                      alt={['Bookmark', 'Bookmarked']}
+                      class="bookmark-button"
+                      icon="bookmark"
+                      onClick={bookmarkStatus}
+                    />
+                  </div>
+                )}
                 <Menu2
                   portal={{
                     target:
@@ -2237,7 +2248,7 @@ function Status({
           </Modal>
         )}
       </article>
-    </>
+    </StatusParent>
   );
 }
 
@@ -2281,16 +2292,18 @@ function MediaFirstContainer(props) {
 
   return (
     <>
-      <div class="media-first-container" ref={carouselRef}>
-        {mediaAttachments.map((media, i) => (
-          <div class="media-first-item" key={media.id}>
-            <Media
-              media={media}
-              lang={language}
-              to={`/${instance}/s/${postID}?media=${i + 1}`}
-            />
-          </div>
-        ))}
+      <div class="media-first-container">
+        <div class="media-first-carousel" ref={carouselRef}>
+          {mediaAttachments.map((media, i) => (
+            <div class="media-first-item" key={media.id}>
+              <Media
+                media={media}
+                lang={language}
+                to={`/${instance}/s/${postID}?media=${i + 1}`}
+              />
+            </div>
+          ))}
+        </div>
         {moreThanOne && (
           <div class="media-carousel-controls">
             <div class="carousel-indexer">
@@ -2336,7 +2349,12 @@ function MediaFirstContainer(props) {
         )}
       </div>
       {moreThanOne && (
-        <div class="media-carousel-dots">
+        <div
+          class="media-carousel-dots"
+          style={{
+            '--dots-count': mediaAttachments.length,
+          }}
+        >
           {mediaAttachments.map((media, i) => (
             <span
               key={media.id}

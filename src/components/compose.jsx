@@ -5,6 +5,7 @@ import { MenuItem } from '@szhsin/react-menu';
 import { deepEqual } from 'fast-equals';
 import { forwardRef } from 'preact/compat';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { useHotkeys } from 'react-hotkeys-hook';
 import stringLength from 'string-length';
 import { uid } from 'uid/single';
 import { useDebouncedCallback, useThrottledCallback } from 'use-debounce';
@@ -32,7 +33,6 @@ import {
 } from '../utils/store-utils';
 import supports from '../utils/supports';
 import useCloseWatcher from '../utils/useCloseWatcher';
-import useHotkeys from '../utils/useHotkeys';
 import useInterval from '../utils/useInterval';
 import visibilityIconsMap from '../utils/visibility-icons-map';
 
@@ -2374,6 +2374,10 @@ function GIFPickerModal({ onClose = () => {}, onSelect = () => {} }) {
     qRef.current?.focus();
   }, []);
 
+  const debouncedOnInput = useDebouncedCallback(() => {
+    fetchGIFs({ offset: 0 });
+  }, 1000);
+
   return (
     <div id="gif-picker-sheet" class="sheet">
       {!!onClose && (
@@ -2400,6 +2404,7 @@ function GIFPickerModal({ onClose = () => {}, onSelect = () => {} }) {
             autocapitalize="off"
             spellCheck="false"
             dir="auto"
+            onInput={debouncedOnInput}
           />
           <input
             type="image"
