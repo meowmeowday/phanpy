@@ -1,5 +1,7 @@
 import './welcome.css';
 
+import { t, Trans } from '@lingui/macro';
+
 import boostsCarouselUrl from '../assets/features/boosts-carousel.jpg';
 import groupedNotificationsUrl from '../assets/features/grouped-notifications.jpg';
 import multiColumnUrl from '../assets/features/multi-column.jpg';
@@ -8,6 +10,7 @@ import nestedCommentsThreadUrl from '../assets/features/nested-comments-thread.j
 import logoText from '../assets/logo-text.svg';
 import logo from '../assets/logo.svg';
 
+import LangSelector from '../components/lang-selector';
 import Link from '../components/link';
 import states from '../utils/states';
 import useTitle from '../utils/useTitle';
@@ -46,7 +49,9 @@ function Welcome() {
             />
             <img src={logoText} alt="Phanpy" width="200" />
           </h1>
-          <p class="desc">meow.day, 一个Fediverse实例。</p>
+          <p class="desc">
+            <Trans>A minimalistic opinionated Mastodon web client.</Trans>
+          </p>
           <p>
             <Link
               to={
@@ -56,30 +61,24 @@ function Welcome() {
               }
               class="button"
             >
-              {DEFAULT_INSTANCE ? 'Log in' : '进来！'}
+              {DEFAULT_INSTANCE ? t`Log in` : t`Log in with Mastodon`}
             </Link>
           </p>
           {DEFAULT_INSTANCE && DEFAULT_INSTANCE_REGISTRATION_URL && (
             <p>
               <a href={DEFAULT_INSTANCE_REGISTRATION_URL} class="button plain5">
-                Sign up
+                <Trans>Sign up</Trans>
               </a>
             </p>
           )}
           {!DEFAULT_INSTANCE && (
             <p class="insignificant">
               <small>
-              <a href="https://meow.day/signup" target="_blank">
-            还没有账户？快来注册吧！
-            </a>
-              <br />
-            <a href="https://meow.day/about" target="_blank">
-            查看站点信息
-            </a>
-                <br />
-              <a href="https://meow.meow.day/#/meow.day/p" target="_blank">
-            预览本站
-            </a>
+                <Trans>
+                  Connect your existing Mastodon/Fediverse account.
+                  <br />
+                  Your credentials are not stored on this server.
+                </Trans>
               </small>
             </p>
           )}
@@ -92,79 +91,109 @@ function Welcome() {
           </p>
         )}
         <p>
-          <a href="https://github.com/cheeaun/phanpy" target="_blank">
-            Built
-          </a>{' '}
-          by{' '}
-          <a
-            href="https://mastodon.social/@cheeaun"
-            target="_blank"
-            onClick={(e) => {
-              e.preventDefault();
-              states.showAccount = 'cheeaun@mastodon.social';
-            }}
-          >
-            @cheeaun
-          </a>
-          .{' '}
-          <a href={PRIVACY_POLICY_URL} target="_blank">
-            Privacy Policy
-          </a>
-          .
+          <Trans>
+            <a href="https://github.com/cheeaun/phanpy" target="_blank">
+              Built
+            </a>{' '}
+            by{' '}
+            <a
+              href="https://mastodon.social/@cheeaun"
+              target="_blank"
+              onClick={(e) => {
+                e.preventDefault();
+                states.showAccount = 'cheeaun@mastodon.social';
+              }}
+            >
+              @cheeaun
+            </a>
+            .{' '}
+            <a href={PRIVACY_POLICY_URL} target="_blank">
+              Privacy Policy
+            </a>
+            .
+          </Trans>
         </p>
+        <div>
+          <LangSelector />
+        </div>
       </div>
       <div id="why-container">
         <div class="sections">
           <section>
             <img
               src={boostsCarouselUrl}
-              alt="Screenshot of Boosts Carousel"
+              alt={t`Screenshot of Boosts Carousel`}
               loading="lazy"
             />
-            <h4>聚合转嘟</h4>
+            <h4>
+              <Trans>Boosts Carousel</Trans>
+            </h4>
             <p>
-              在时间线上将原创嘟文和转嘟分开显示。
+              <Trans>
+                Visually separate original posts and re-shared posts (boosted
+                posts).
+              </Trans>
             </p>
           </section>
           <section>
             <img
               src={nestedCommentsThreadUrl}
-              alt="Screenshot of nested comments thread"
+              alt={t`Screenshot of nested comments thread`}
               loading="lazy"
             />
-            <h4>聚合回复</h4>
-            <p>利用折叠层级回复结构，轻松聚焦对话。</p>
+            <h4>
+              <Trans>Nested comments thread</Trans>
+            </h4>
+            <p>
+              <Trans>
+                Effortlessly follow conversations. Semi-collapsible replies.
+              </Trans>
+            </p>
           </section>
           <section>
             <img
               src={groupedNotificationsUrl}
-              alt="Screenshot of grouped notifications"
+              alt={t`Screenshot of grouped notifications`}
               loading="lazy"
             />
-            <h4>聚合通知</h4>
+            <h4>
+              <Trans>Grouped notifications</Trans>
+            </h4>
             <p>
-              将不同用户对你的通知的互动聚合在一起。
+              <Trans>
+                Similar notifications are grouped and collapsed to reduce
+                clutter.
+              </Trans>
             </p>
           </section>
           <section>
             <img
               src={multiColumnUrl}
-              alt="Screenshot of multi-column UI"
+              alt={t`Screenshot of multi-column UI`}
               loading="lazy"
             />
-            <h4>自定义页面栏目</h4>
+            <h4>
+              <Trans>Single or multi-column</Trans>
+            </h4>
             <p>
-              在默认状态下，只会显示单栏页面，你可以自定义主页显示的栏目数。
+              <Trans>
+                By default, single column for zen-mode seekers. Configurable
+                multi-column for power users.
+              </Trans>
             </p>
           </section>
           <section>
             <img
               src={multiHashtagTimelineUrl}
-              alt="Screenshot of multi-hashtag timeline with a form to add more hashtags"
+              alt={t`Screenshot of multi-hashtag timeline with a form to add more hashtags`}
               loading="lazy"
             />
-            <h4>多标签时间线</h4>
-            <p>你可以在时间线上关注至多5个不同标签。</p>
+            <h4>
+              <Trans>Multi-hashtag timeline</Trans>
+            </h4>
+            <p>
+              <Trans>Up to 5 hashtags combined into a single timeline.</Trans>
+            </p>
           </section>
         </div>
       </div>

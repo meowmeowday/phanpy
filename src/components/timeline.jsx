@@ -1,3 +1,4 @@
+import { t, Trans } from '@lingui/macro';
 import { memo } from 'preact/compat';
 import {
   useCallback,
@@ -120,6 +121,9 @@ function Timeline({
         } catch (e) {
           console.error(e);
           setUIState('error');
+          if (firstLoad && !items.length && errorText) {
+            showToast(errorText);
+          }
         } finally {
           loadItems.cancel();
         }
@@ -427,7 +431,7 @@ function Timeline({
                   headerStart
                 ) : (
                   <Link to="/" class="button plain home-button">
-                    <Icon icon="home" size="l" />
+                    <Icon icon="home" size="l" alt={t`Home`} />
                   </Link>
                 )}
               </div>
@@ -443,7 +447,7 @@ function Timeline({
                 type="button"
                 onClick={handleLoadNewPosts}
               >
-                <Icon icon="arrow-up" /> New posts
+                <Icon icon="arrow-up" /> <Trans>New posts</Trans>
               </button>
             )}
           </header>
@@ -509,11 +513,13 @@ function Timeline({
                       onClick={() => loadItems()}
                       style={{ marginBlockEnd: '6em' }}
                     >
-                      Show more&hellip;
+                      <Trans>Show more…</Trans>
                     </button>
                   </InView>
                 ) : (
-                  <p class="ui-state insignificant">The end.</p>
+                  <p class="ui-state insignificant">
+                    <Trans>The end.</Trans>
+                  </p>
                 ))}
             </>
           ) : uiState === 'loading' ? (
@@ -542,7 +548,7 @@ function Timeline({
               <br />
               <br />
               <button type="button" onClick={() => loadItems(!items.length)}>
-                Try again
+                <Trans>Try again</Trans>
               </button>
             </p>
           )}
@@ -874,7 +880,7 @@ function StatusCarousel({ title, class: className, children }) {
               });
             }}
           >
-            <Icon icon="chevron-left" />
+            <Icon icon="chevron-left" alt={t`Previous`} />
           </button>{' '}
           <button
             ref={endButtonRef}
@@ -891,7 +897,7 @@ function StatusCarousel({ title, class: className, children }) {
               });
             }}
           >
-            <Icon icon="chevron-right" />
+            <Icon icon="chevron-right" alt={t`Next`} />
           </button>
         </span>
       </header>
@@ -931,14 +937,14 @@ function TimelineStatusCompact({ status, instance, filterContext }) {
     >
       {!!snapStates.statusThreadNumber[sKey] ? (
         <div class="status-thread-badge">
-          <Icon icon="thread" size="s" />
+          <Icon icon="thread" size="s" alt={t`Thread`} />
           {snapStates.statusThreadNumber[sKey]
             ? ` ${snapStates.statusThreadNumber[sKey]}/X`
             : ''}
         </div>
       ) : (
         <div class="status-thread-badge">
-          <Icon icon="thread" size="s" />
+          <Icon icon="thread" size="s" alt={t`Thread`} />
         </div>
       )}
       <div
@@ -952,7 +958,15 @@ function TimelineStatusCompact({ status, instance, filterContext }) {
             class="status-filtered-badge badge-meta horizontal"
             title={filterInfo?.titlesStr || ''}
           >
-            <span>Filtered</span>: <span>{filterInfo?.titlesStr || ''}</span>
+            {filterInfo?.titlesStr ? (
+              <Trans>
+                <span>Filtered</span>: <span>{filterInfo.titlesStr}</span>
+              </Trans>
+            ) : (
+              <span>
+                <Trans>Filtered</Trans>
+              </span>
+            )}
           </b>
         ) : (
           <>
@@ -961,7 +975,7 @@ function TimelineStatusCompact({ status, instance, filterContext }) {
               <>
                 {' '}
                 <span class="spoiler-badge">
-                  <Icon icon="eye-close" size="s" />
+                  <Icon icon="eye-close" size="s" alt={t`Content warning`} />
                 </span>
               </>
             )}
